@@ -1,0 +1,55 @@
+{
+  "semestre_inicio": "2026-08-24",
+  "materias": [
+    {"codigo": "ISIS FDSI",    "creditos": 3},
+    {"codigo": "ISIS ARSW",    "creditos": 4},
+    {"codigo": "ECOADPR FIPE", "creditos": 3},
+    {"codigo": "CIENCBAS ASTO","creditos": 3},
+    {"codigo": "MATE ECDI",    "creditos": 4},
+    {"codigo": "ISIS PTIA",    "creditos": 3}
+  ],
+  "bloques": [
+    {"materia": "ISIS ARSW",     "tipo": "LEC", "dia": 1, "inicio": "11:30", "fin": "13:00", "salon": "C C1-203"},
+    {"materia": "CIENCBAS ASTO", "tipo": "LEC", "dia": 1, "inicio": "13:00", "fin": "14:30", "salon": "D D-111"},
+    {"materia": "MATE ECDI",     "tipo": "LEC", "dia": 1, "inicio": "14:30", "fin": "16:00", "salon": "C C4-201"},
+
+    {"materia": "ISIS FDSI",     "tipo": "LEC", "dia": 2, "inicio": "07:00", "fin": "08:30", "salon": "D D-301-E"},
+    {"materia": "ECOADPR FIPE",  "tipo": "LEC", "dia": 2, "inicio": "11:30", "fin": "13:00", "salon": "C C1-101"},
+
+    {"materia": "ISIS FDSI",     "tipo": "LAB", "dia": 3, "inicio": "07:00", "fin": "10:00", "salon": "C C1-205A"},
+    {"materia": "CIENCBAS ASTO", "tipo": "LEC", "dia": 3, "inicio": "13:00", "fin": "14:30", "salon": "D D-312-E"},
+    {"materia": "MATE ECDI",     "tipo": "LEC", "dia": 3, "inicio": "14:30", "fin": "16:00", "salon": "D D-211"},
+
+    {"materia": "ISIS FDSI",     "tipo": "LEC", "dia": 4, "inicio": "07:00", "fin": "08:30", "salon": "C C7-203"},
+    {"materia": "ISIS ARSW",     "tipo": "LAB", "dia": 4, "inicio": "10:00", "fin": "13:00", "salon": "C C1-205A"},
+    {"materia": "MATE ECDI",     "tipo": "LEC", "dia": 4, "inicio": "14:30", "fin": "16:00", "salon": "C C1-203"},
+
+    {"materia": "ECOADPR FIPE",  "tipo": "LEC", "dia": 5, "inicio": "08:30", "fin": "10:00", "salon": "C C3-205"},
+    {"materia": "ISIS PTIA",     "tipo": "LEC", "dia": 5, "inicio": "10:00", "fin": "11:30", "salon": "F F-112"},
+    {"materia": "ISIS PTIA",     "tipo": "LAB", "dia": 5, "inicio": "11:30", "fin": "13:00", "salon": "D D-310-E"}
+  ],
+  "labs": {
+    "ISIS FDSI": {"frecuencia": "quincenal", "semanas": "par",   "dias_entrega": 7, "dificultad": "Medio"},
+    "ISIS ARSW": {"frecuencia": "semanal",   "semanas": null,    "dias_entrega": 7, "dificultad": "Difícil"},
+    "ISIS PTIA": {"frecuencia": "quincenal", "semanas": "impar", "dias_entrega": 7, "dificultad": "Fácil"}
+  },
+  "entregas_clase": {
+    "CIENCBAS ASTO": {"frecuencia": "semanal", "semanas": null, "dias_entrega": 7, "dificultad": "Fácil"},
+    "MATE ECDI":     {"frecuencia": "semanal", "semanas": null, "dias_entrega": 7, "dificultad": "Medio"}
+  },
+  "disponibilidad": {
+    "0": {"disponible": true,  "inicio_trabajo": "08:00"},
+    "1": {"disponible": true,  "inicio_trabajo": "17:00"},
+    "2": {"disponible": true,  "inicio_trabajo": "14:00"},
+    "3": {"disponible": true,  "inicio_trabajo": "17:00"},
+    "4": {"disponible": true,  "inicio_trabajo": "17:00"},
+    "5": {"disponible": true,  "inicio_trabajo": "14:00"},
+    "6": {"disponible": false, "inicio_trabajo": null}
+  },
+  "trabajos": [
+    {"id": "m1", "materia": "MATE ECDI", "tipo": "Parcial",  "titulo": "Parcial 2 de ECDI",         "entrega": "2026-10-20", "dificultad": "Difícil"},
+    {"id": "m2", "materia": "ISIS ARSW", "tipo": "Proyecto", "titulo": "Proyecto ARSW - entrega 1", "entrega": "2026-10-23", "dificultad": "Medio"},
+    {"id": "m3", "materia": "ISIS PTIA", "tipo": "Proyecto", "titulo": "Proyecto PTIA - Hito 2",    "entrega": "2026-10-30", "dificultad": "Medio", "horas": 8}
+  ],
+  "hechas": []
+}
