@@ -1,11 +1,12 @@
-"""Genera los diagramas de diseño (PNG) usados en el documento (MVP, Hito 3).\nUso:  python diseno/generar_diagramas.py\n"""
+"""Genera los diagramas de diseño (PNG) usados en el documento (MVP, Hito 3).\nUso:  python herramientas/generar_diagramas.py\n"""
 import os
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
 
-aqui = os.path.dirname(os.path.abspath(__file__))
+aqui = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "documento", "img")
+os.makedirs(aqui, exist_ok=True)
 NAVY, SAGE, SAGE_L, AMBER, ROSE, LAV, INK, GREY = "#1E3A5F", "#C6DEAB", "#E4F0D6", "#F7E8C3", "#F7D9D4", "#DFE3F2", "#16202B", "#6B7A89"
 plt.rcParams["font.family"] = "DejaVu Sans"
 
@@ -98,9 +99,4 @@ ax.text(10.0, 12.75, "Cada vez que el estudiante marca una tarea como hecha o ca
 ax.text(7.0, 2.25, "Las pasadas 1 y 2 usan los mismos huecos:\nprimero se ubican las entregas y solo después\nel estudio independiente.", ha="left", va="center", fontsize=9, color=GREY, linespacing=1.5)
 fig.savefig(os.path.join(aqui, "algoritmo.png"), bbox_inches="tight", facecolor="white")
 plt.close(fig)
-import shutil
-destino = os.path.join(aqui, "..", "documento", "img")
-os.makedirs(destino, exist_ok=True)
-for n in ("arquitectura.png", "algoritmo.png"):
-    shutil.copy(os.path.join(aqui, n), os.path.join(destino, n))
 print("ok")

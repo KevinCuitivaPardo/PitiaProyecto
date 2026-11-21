@@ -26,7 +26,7 @@ lo que se hizo en esta entrega.
 | 6a. Estrategia general y justificación | Implícita en el código | Sección *Diseño*: estrategia y tabla de alternativas (optimización, LLM, aprendizaje supervisado) |
 | 6b. Dónde está la inteligencia | **Nunca se explicitó** | Conocimiento, razonamiento y aprendizaje, con las fórmulas |
 | 6c. Herramienta y justificación | Sin justificar | Justificada (solo biblioteca estándar, reproducible) |
-| 6d. Arquitectura | Diagrama del Hito 2 desactualizado | Rehecho para el MVP (`diseno/arquitectura.png`) |
+| 6d. Arquitectura | Diagrama del Hito 2 desactualizado | Rehecho para el MVP (`documento/img/arquitectura.png`) |
 | 6e. Componente principal | Sin descripción | Planificador: pasos, parámetros, ejemplo real y costo |
 | Prototipo de interfaz (navegable) | Bien; la lectura de la imagen del horario estaba **simulada** | Reemplazada por importación JSON validada; la lectura de imágenes se declara fuera de alcance |
 | Fuentes del diseño y del código | Sin referencias ni procedencia | Subsección *Fuentes del diseño y del código* y bibliografía |

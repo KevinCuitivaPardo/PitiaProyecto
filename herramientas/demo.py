@@ -1,15 +1,17 @@
-"""Demo en consola: genera el plan recomendado con el horario real del equipo.
+"""Demo en consola: genera el plan recomendado con el horario real del estudiante.
 
-Uso:  python demo.py [archivo.json] [YYYY-MM-DD HH:MM]
+Uso:  python herramientas/demo.py [archivo.json] [YYYY-MM-DD HH:MM]
 """
+import os
 import sys
 from datetime import datetime, date
 
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 from motor.semestria import (DIAS, cargar, planificar, fecha, horas_independientes,
                              contacto_semanal_min, horas_totales_semana, creditos_de,
                              semana_del_semestre, paridad)
 
-ruta = sys.argv[1] if len(sys.argv) > 1 else "datos/horario_ejemplo.json"
+ruta = sys.argv[1] if len(sys.argv) > 1 else os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "datos", "horario_ejemplo.json")
 ahora = datetime.fromisoformat(sys.argv[2]) if len(sys.argv) > 2 else datetime(2026, 10, 12, 9, 0)
 datos = cargar(ruta)
 

@@ -1,8 +1,8 @@
 """Captura las pantallas del MVP con Edge/Chrome en modo headless (sin instalar nada extra).
 
-Uso:  python diseno/capturar.py
+Uso:  python herramientas/capturar.py
 Usa la ruta #demo=<pantalla> de la interfaz: fija la fecha del ejemplo (lunes 12/10/2026 09:00),
-no toca el almacenamiento del navegador del usuario y deja los PNG en diseno/pantallas_mvp/ y documento/img/.
+no toca el almacenamiento del navegador del usuario y deja los PNG en documento/img/ (pant_*.png).
 """
 import os
 import shutil
@@ -58,19 +58,16 @@ def main():
             break
         except OSError:
             time.sleep(0.2)
-    salida = os.path.join(aqui, "pantallas_mvp")
     destino = os.path.join(aqui, "..", "documento", "img")
-    os.makedirs(salida, exist_ok=True)
     os.makedirs(destino, exist_ok=True)
     perfil = tempfile.mkdtemp(prefix="semestria_perfil_")
     try:
         for nombre, demo, w, h in PANTALLAS:
-            png = os.path.join(salida, nombre + ".png")
+            png = os.path.join(destino, f"pant_{nombre}.png")
             subprocess.run([nav, "--headless", "--disable-gpu", "--hide-scrollbars", f"--user-data-dir={perfil}",
                             f"--window-size={w},{h}", "--virtual-time-budget=90000", f"--screenshot={png}", f"{base}#demo={demo}"],
                            check=True, capture_output=True, timeout=90)
             esperar(png)
-            shutil.copy(png, os.path.join(destino, f"pant_{nombre}.png"))
             print("ok", nombre)
     finally:
         srv.terminate()
