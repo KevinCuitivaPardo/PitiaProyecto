@@ -8,7 +8,7 @@ En **Overleaf**: subir esta carpeta, elegir compilador **XeLaTeX** y abrir `main
 ## Antes de entregar
 1. Completar los placeholders (`python documento/verificar_latex.py` los lista): grupo, segundo integrante y fecha en `content/portada.tex`, y nombres y fecha en `content/declaracion.tex`.
 2. Confirmar los problemas 2 y 3 de `content/introduccion.tex` y las calificaciones de la tabla de selección en `content/descripcion_problema.tex` (son una propuesta).
-3. **Verificar cada referencia** de `bibliography/references.bib` (autores, volumen, páginas, DOI).
+3. Referencias verificadas por búsqueda web (ver `docs/VERIFICACION_REFERENCIAS.md`); falta confirmar a mano el artículo exacto del Decreto 1330 y las URL.
 4. Revisar el PDF: no se pudo compilar en la máquina donde se redactó; `verificar_latex.py` solo comprueba la estructura (entornos, referencias, citas, imágenes).
 
 ## Regenerar cifras, tablas y figuras
