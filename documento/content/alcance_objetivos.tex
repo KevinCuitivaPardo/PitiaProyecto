@@ -1,0 +1,68 @@
+\section{Alcance y objetivos}\label{sec:alcance}
+
+\subsection{El problema que efectivamente se resuelve}
+
+SemestrIA resuelve la versión del problema 1 en la que \textbf{un solo estudiante} tiene un horario semanal fijo durante todo el semestre y quiere un plan de las próximas semanas (el horizonte llega hasta el domingo de la segunda semana siguiente, o hasta la última entrega registrada). El sistema:
+
+\begin{enumerate}
+    \item convierte los créditos de cada materia en horas de clase y de estudio independiente;
+    \item identifica los huecos de tiempo reales, descontando clases, la hora a la que el estudiante puede empezar a trabajar y los días que no está disponible;
+    \item genera las entregas que se derivan del horario (informes de laboratorio y talleres de clase) y las combina con los trabajos que el estudiante registra;
+    \item reparte el trabajo en esos huecos priorizando por fecha de entrega y dificultad, con topes de carga diaria;
+    \item explica cada bloque, advierte cuando algo no cabe y da recomendaciones concretas;
+    \item recalcula el plan cuando el estudiante marca tareas como hechas o cambia datos, y aprende cuánto tarda de verdad en cada tipo de trabajo;
+    \item ofrece un asistente en forma de chat que responde sobre el horario y recomienda métodos de estudio y bienestar con base en la literatura, y una sección de progreso con horas cumplidas frente a las necesarias, tareas realizadas y rachas.
+\end{enumerate}
+
+\subsection{Por qué es una simplificación adecuada}
+
+La dificultad central del problema (repartir una carga con restricciones cruzadas, sostenible y explicable) se conserva completa. Lo que se deja fuera es ingeniería de entrada y de integración, o refinamientos que no cambian la validez de la prueba de concepto (tabla~\ref{tab:simplificaciones}).
+
+\begin{table}[H]
+\centering\small
+\caption{Simplificaciones del alcance}\label{tab:simplificaciones}
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{4.2cm} >{\raggedright\arraybackslash}p{4.6cm} >{\raggedright\arraybackslash}X}
+\toprule
+Aspecto del problema real & Tratamiento en el MVP & Por qué es adecuado \\
+\midrule
+Lectura del horario desde una imagen o PDF & El horario entra como archivo JSON validado o se arma en la interfaz & Leer imágenes es un problema aparte (visión por computador); no cambia el razonamiento del plan \\
+Horario que cambia a mitad de semestre & El horario es fijo, pero se puede editar y el plan se recalcula & El caso habitual es un horario estable durante el periodo \\
+Trabajos con dependencias entre sí & Los trabajos son independientes entre sí & Las entregas de un semestre rara vez dependen unas de otras \\
+Trabajo en grupo y disponibilidad de varias personas & Un solo estudiante & Agendar a varias personas es el problema que ya aborda PTIME; aquí el foco son los créditos y las entregas \\
+Integración con calendarios externos & No hay & Es una función de producto, no de validación de la solución \\
+Duración real de cada trabajo & Estimada por tipo y dificultad y calibrada con las horas reales que registra el estudiante & Permite validar el aprendizaje con pocos datos \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Objetivos}
+
+\textbf{Objetivo general.} Desarrollar y evaluar un prototipo funcional (MVP) de un sistema basado en inteligencia artificial que, a partir del horario fijo, los créditos y los trabajos de un estudiante, genere un plan semanal explicable que cumpla las restricciones del horario, mantenga una carga diaria sostenible y se ajuste al ritmo real de la persona.
+
+\textbf{Objetivos específicos.}
+
+\begin{enumerate}
+    \item Modelar la conversión de créditos en horas de trabajo dentro y fuera de clase.
+    \item Permitir cargar el horario (o usar uno de prueba), identificar materias y huecos de tiempo y registrar la disponibilidad real del estudiante.
+    \item Distinguir clases teóricas y laboratorios (semanales o quincenales) y generar las entregas que se derivan de ellos.
+    \item Priorizar el tiempo según la fecha de entrega y la dificultad percibida de cada trabajo.
+    \item Explicar cada decisión y entregar recomendaciones concretas para el semestre.
+    \item Calibrar las estimaciones de tiempo con las horas reales que registra el estudiante.
+    \item Evaluar el sistema con casos de prueba y con simulación, y compararlo con una estrategia de referencia.
+    \item Acompañar al estudiante con un asistente conversacional que responda sobre su horario y le recomiende métodos de estudio y bienestar fundamentados, y con un seguimiento de su progreso.
+\end{enumerate}
+
+\textbf{Objetivos cuantitativos y cualitativos.} En el Hito 2 los objetivos eran cualitativos; al diseñar la evaluación del MVP en el Hito 3 se formalizaron los siguientes criterios de aceptación. Sus umbrales se verifican en la sección~\ref{sec:resultados}.
+
+\begin{itemize}
+    \item \textbf{OC1.} Ninguna violación de restricciones duras (choque con clases, día no disponible, tope diario, horario fuera de 7:00--21:00, trabajo después de su entrega) en los escenarios simulados.
+    \item \textbf{OC2.} Ninguna falla silenciosa: todo trabajo que no queda con su tiempo completo debe tener una advertencia.
+    \item \textbf{OC3.} Tiempo de planificación en el percentil 95 de 100 ms o menos, para que el plan se recalcule al instante.
+    \item \textbf{OC4.} Ningún día con más de 6 horas de trabajo en tareas (frente a la estrategia de último momento).
+    \item \textbf{OC5.} Al menos un 50\,\% menos de trabajos terminados el mismo día de la entrega que la estrategia de último momento.
+    \item \textbf{OC6.} Al menos el 95\,\% de los trabajos con su tiempo asegurado en escenarios aleatorios.
+    \item \textbf{OC7.} Al menos un 25\,\% de reducción del error de estimación para estudiantes cuyo ritmo real difiere de la estimación base en un 20\,\% o más.
+    \item \textbf{OC8.} Todas las pruebas automáticas pasan.
+\end{itemize}
+
+Los objetivos cualitativos son la \textbf{explicabilidad} (cada bloque y cada recomendación dicen por qué), la \textbf{autonomía} (el estudiante puede ajustar todo), el \textbf{bienestar} (topes diarios y días de descanso) y una interfaz que se pueda usar de principio a fin sin instrucciones.

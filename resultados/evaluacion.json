@@ -1,0 +1,275 @@
+{
+ "casos": [
+  {
+   "id": "CP1",
+   "nombre": "Semana base del equipo",
+   "entrada": "Horario real del equipo (6 materias, 14 bloques), 3 trabajos registrados, lunes 12/10/2026 09:00 (semana 8, par).",
+   "chequeos": [
+    [
+     "Tareas con tiempo asegurado",
+     "15 de 15",
+     "15 de 15",
+     true
+    ],
+    [
+     "Violaciones de restricciones duras",
+     "0",
+     "0",
+     true
+    ],
+    [
+     "Máximo de horas en un día",
+     "<= 6 h",
+     "6 h",
+     true
+    ],
+    [
+     "Parcial difícil (entrega 20/10) termina con >= 2 días de colchón",
+     "último bloque <= 18/10",
+     "último bloque 16/10",
+     true
+    ],
+    [
+     "Advertencias de tiempo",
+     "0",
+     "0",
+     true
+    ]
+   ],
+   "datos_extra": {
+    "bloques": 67,
+    "horas_tareas": 53.5,
+    "horas_estudio": 53.0,
+    "carga_por_dia_h": {
+     "2026-10-12": 5.5,
+     "2026-10-13": 6.0,
+     "2026-10-14": 6.0,
+     "2026-10-15": 6.0,
+     "2026-10-16": 6.0,
+     "2026-10-17": 5.5,
+     "2026-10-19": 6.0,
+     "2026-10-20": 5.5,
+     "2026-10-21": 6.0,
+     "2026-10-22": 6.0,
+     "2026-10-23": 6.0,
+     "2026-10-24": 6.0,
+     "2026-10-26": 6.0,
+     "2026-10-27": 6.0,
+     "2026-10-28": 6.0,
+     "2026-10-29": 6.0,
+     "2026-10-30": 6.0,
+     "2026-10-31": 6.0
+    }
+   }
+  },
+  {
+   "id": "CP2",
+   "nombre": "Entrega imposible",
+   "entrada": "Caso base + un proyecto difícil de 40 h que se entrega mañana (13/10).",
+   "chequeos": [
+    [
+     "Advertencia «no alcanza el tiempo» para el proyecto",
+     "1 advertencia",
+     "1 advertencia(s)",
+     true
+    ],
+    [
+     "Horas asignadas + horas que faltan = 40 h",
+     "40 h",
+     "8 + 32 = 40 h",
+     true
+    ],
+    [
+     "Se respeta el tope diario pese a la presión",
+     "0 violaciones",
+     "0 violaciones",
+     true
+    ],
+    [
+     "Los demás trabajos registrados siguen cubiertos",
+     "3 de 3",
+     "3 de 3",
+     true
+    ]
+   ],
+   "datos_extra": {
+    "horas_asignadas_x1": 8.0,
+    "faltan_h": 32.0
+   }
+  },
+  {
+   "id": "CP3",
+   "nombre": "Marcar tareas como hechas reacomoda el plan",
+   "entrada": "Caso base; el estudiante marca como hechos el Parcial 2 de ECDI y el informe de laboratorio de ARSW (09/10).",
+   "chequeos": [
+    [
+     "Desaparecen los bloques de las tareas hechas",
+     "0 bloques",
+     "0 bloques",
+     true
+    ],
+    [
+     "Baja el trabajo en tareas",
+     "< 53.5 h",
+     "41.5 h",
+     true
+    ],
+    [
+     "El tiempo liberado pasa a estudio independiente",
+     "> 53 h",
+     "64.5 h",
+     true
+    ],
+    [
+     "Las demás tareas siguen cubiertas",
+     "13 de 13",
+     "13 de 13",
+     true
+    ]
+   ],
+   "datos_extra": {
+    "antes": {
+     "tareas_h": 53.5,
+     "estudio_h": 53.0
+    },
+    "despues": {
+     "tareas_h": 41.5,
+     "estudio_h": 64.5
+    }
+   }
+  },
+  {
+   "id": "CP4",
+   "nombre": "Se respeta un día sin disponibilidad",
+   "entrada": "Caso base pero el sábado deja de estar disponible.",
+   "chequeos": [
+    [
+     "Bloques el sábado",
+     "0",
+     "0",
+     true
+    ],
+    [
+     "Violaciones de restricciones duras",
+     "0",
+     "0",
+     true
+    ],
+    [
+     "Tareas cubiertas o advertidas (sin fallas silenciosas)",
+     "100 %",
+     "15 cubiertas, 0 advertidas de 15",
+     true
+    ]
+   ],
+   "datos_extra": {
+    "bloques_con_sabado": 67,
+    "bloques_sin_sabado": 59
+   }
+  },
+  {
+   "id": "CP5",
+   "nombre": "La calibración ajusta las estimaciones",
+   "entrada": "Caso base; el estudiante registró 5 talleres que estimados en 2 h le tomaron 3 h (razón 1,5).",
+   "chequeos": [
+    [
+     "Sin historial el factor es 1 (el plan no cambia)",
+     "1,00",
+     "1.00",
+     true
+    ],
+    [
+     "Con 5 registros el factor se acerca a 1,5 sin igualarlo",
+     "entre 1,30 y 1,50",
+     "1.42",
+     true
+    ],
+    [
+     "Aumentan los minutos asignados a talleres",
+     "> 630 min",
+     "990 min",
+     true
+    ],
+    [
+     "Los trabajos con horas fijadas por el estudiante no cambian",
+     "480 min (PTIA)",
+     "480 min",
+     true
+    ]
+   ],
+   "datos_extra": {
+    "factor_taller": 1.417
+   }
+  }
+ ],
+ "simulacion": {
+  "escenarios": 300,
+  "violaciones": {},
+  "violaciones_total": 0,
+  "tareas_totales": 3162,
+  "tareas_cubiertas": 3110,
+  "pct_tareas_cubiertas": 98.4,
+  "escenarios_completos": 257,
+  "escenarios_con_advertencia": 43,
+  "ms_por_plan_media": 3.34,
+  "ms_por_plan_p95": 4.76,
+  "ms_por_plan_max": 6.63,
+  "edf": {
+   "dias_sobrecargados_total": 0,
+   "dias_sobrecargados_por_escenario": 0.0,
+   "max_h_dia_media": 5.84,
+   "sin_colchon_total": 159,
+   "pct_sin_colchon": 5.1,
+   "anticipacion_media_dias": 7.53,
+   "pct_cubiertas": 98.4
+  },
+  "ultimo": {
+   "dias_sobrecargados_total": 513,
+   "dias_sobrecargados_por_escenario": 1.71,
+   "max_h_dia_media": 8.35,
+   "sin_colchon_total": 2842,
+   "pct_sin_colchon": 90.1,
+   "anticipacion_media_dias": 0.15,
+   "pct_cubiertas": 99.7
+  }
+ },
+ "calibracion": {
+  "usuarios_por_ritmo": 200,
+  "trabajos_por_usuario": 12,
+  "se_mide_desde_el_trabajo": 6,
+  "por_ritmo": {
+   "0.6": {
+    "mae_sin_h": 1.69,
+    "mae_con_h": 0.52,
+    "reduccion_pct": 69.0
+   },
+   "0.8": {
+    "mae_sin_h": 0.94,
+    "mae_con_h": 0.64,
+    "reduccion_pct": 32.1
+   },
+   "1.0": {
+    "mae_sin_h": 0.7,
+    "mae_con_h": 0.73,
+    "reduccion_pct": -4.3
+   },
+   "1.3": {
+    "mae_sin_h": 1.48,
+    "mae_con_h": 0.97,
+    "reduccion_pct": 34.9
+   },
+   "1.6": {
+    "mae_sin_h": 2.78,
+    "mae_con_h": 1.31,
+    "reduccion_pct": 52.8
+   },
+   "2.0": {
+    "mae_sin_h": 4.57,
+    "mae_con_h": 1.74,
+    "reduccion_pct": 61.9
+   }
+  },
+  "reduccion_media_pct": 51.4,
+  "reduccion_media_sesgados_pct": 50.1
+ }
+}

@@ -9,6 +9,7 @@ import re
 from collections import defaultdict
 from datetime import date, datetime, timedelta
 
+from .calibracion import factor_global, resumen_calibracion
 from .semestria import DIAS, a_min, fecha
 
 HHMM = re.compile(r"^\d{1,2}:\d{2}$")
@@ -32,6 +33,11 @@ def validar_datos(d) -> tuple[dict | None, list[str]]:
         "trabajos": d.get("trabajos") or [],
         "hechas": d.get("hechas") or [],
         "en_curso": d.get("en_curso") or [],
+        "historial": [h for h in (d.get("historial") or []) if isinstance(h, dict)],
+        "sesiones": [x for x in (d.get("sesiones") or []) if isinstance(x, dict)],
+        "hechas_fecha": d.get("hechas_fecha") if isinstance(d.get("hechas_fecha"), dict) else {},
+        "uso": [x for x in (d.get("uso") or []) if isinstance(x, str)],
+        "perfil": d.get("perfil") if isinstance(d.get("perfil"), dict) else {},
     }
     try:
         fecha(out["semestre_inicio"])
@@ -227,7 +233,21 @@ def consejos(datos: dict, plan: dict, ahora: datetime) -> list[dict]:
                     materia=t["materia"], tarea_id=tid)
                 break
 
-    # 8. Progreso y cierre
+    # 8. Calibración aprendida del historial de tiempos reales
+    hist = datos.get("historial") or []
+    if len(hist) >= 3:
+        g = factor_global(hist)
+        if abs(g - 1) >= 0.15:
+            mas = g > 1
+            add("info", "estudio", f"Tus trabajos te toman {abs(round((g - 1) * 100))}% {'más' if mas else 'menos'} de lo estimado",
+                f"Con {len(hist)} trabajos registrados, el sistema aprendió que tardas {'más' if mas else 'menos'} que la estimación base y ya la ajustó en tus próximos trabajos.",
+                "Sigue registrando las horas reales al marcar un trabajo como hecho: mientras más datos, más precisa la estimación.")
+    elif not hist:
+        add("info", "estudio", "Registra cuánto te toma cada trabajo",
+            "Las horas por tipo de trabajo son estimaciones generales, no tus tiempos reales.",
+            "Al marcar un trabajo como hecho, anota las horas que de verdad te tomó: el plan se calibra a tu ritmo.")
+
+    # 9. Progreso y cierre
     if hechas:
         add("info", "progreso", f"Llevas {len(hechas)} {'tarea hecha' if len(hechas) == 1 else 'tareas hechas'}",
             "Cada tarea cerrada libera tiempo en el plan para lo que sigue.",

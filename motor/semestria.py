@@ -9,7 +9,7 @@ Enfoque: sistema basado en reglas + heurística de planificación tipo EDF
 explicable: cada bloque recomendado trae el motivo en lenguaje natural.
 
 Todas las duraciones se manejan en minutos enteros para que el comportamiento
-sea idéntico en la versión JavaScript del prototipo (prototipo/engine.js).
+sea reproducible. Las estimaciones se calibran con el tiempo real que registra el estudiante (calibracion.py).
 """
 from __future__ import annotations
 
@@ -17,6 +17,8 @@ from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 import json
 import math
+
+from .calibracion import factor_calibracion
 
 # --- Constantes de dominio -------------------------------------------------
 HORAS_POR_CREDITO = 48      # Decreto 1330 de 2019, Art. 2.5.3.2.4.1
@@ -165,16 +167,20 @@ def ventanas_libres(f: date, datos: dict, cfg: Config, ahora: datetime | None = 
 
 
 # --- Trabajos --------------------------------------------------------------
-def horas_estimadas(tipo: str, dificultad: str, override: float | None = None) -> float:
-    horas = override if override is not None else HORAS_BASE[tipo] * FACTOR_DIFICULTAD[dificultad]
+def horas_estimadas(tipo: str, dificultad: str, override: float | None = None, factor: float = 1.0) -> float:
+    """Horas de un trabajo: las que fije el estudiante o (horas base x dificultad x factor aprendido)."""
+    horas = override if override is not None else HORAS_BASE[tipo] * FACTOR_DIFICULTAD[dificultad] * factor
     return math.ceil(horas * 2) / 2  # múltiplos de 30 min
 
 
-def _tarea(id_, materia, tipo, titulo, due, dificultad, horas, desde, desde_min, auto):
+def _tarea(id_, materia, tipo, titulo, due, dificultad, horas, desde, desde_min, auto, historial=None):
+    """base_min es la estimación sin calibrar (contra la que se mide el tiempo real); fija indica que
+    el estudiante dio las horas y por eso no se corrige."""
     return {
         "id": id_, "materia": materia, "tipo": tipo, "titulo": titulo,
         "due": due, "dificultad": dificultad,
-        "min": int(horas_estimadas(tipo, dificultad, horas) * 60),
+        "min": int(horas_estimadas(tipo, dificultad, horas, factor_calibracion(historial or [], tipo)) * 60),
+        "base_min": int(horas_estimadas(tipo, dificultad, horas) * 60), "fija": horas is not None,
         "desde": desde, "desde_min": desde_min, "auto": auto,
     }
 
@@ -186,7 +192,7 @@ def tareas_manuales(datos: dict, hoy: date) -> list[dict]:
             continue
         res.append(_tarea(t["id"], t["materia"], t["tipo"], t["titulo"], fecha(t["entrega"]),
                           t["dificultad"], t.get("horas"), fecha(t["desde"]) if t.get("desde") else hoy,
-                          0, False))
+                          0, False, datos.get("historial")))
     return res
 
 
@@ -209,7 +215,7 @@ def tareas_automaticas(datos: dict, hoy: date, hasta: date) -> list[dict]:
             if due < hoy or due > hasta or tid in hechas:
                 continue
             res.append(_tarea(tid, b["materia"], "Laboratorio", f"Informe de laboratorio {b['materia']} ({d.strftime('%d/%m')})",
-                              due, cfg["dificultad"], None, d, a_min(b["fin"]), True))
+                              due, cfg["dificultad"], None, d, a_min(b["fin"]), True, datos.get("historial")))
         # talleres que salen de la clase teórica
         for materia, cfg in datos.get("entregas_clase", {}).items():
             if cfg.get("frecuencia") in (None, "ninguna"):
@@ -225,7 +231,7 @@ def tareas_automaticas(datos: dict, hoy: date, hasta: date) -> list[dict]:
             if due < hoy or due > hasta or tid in hechas:
                 continue
             res.append(_tarea(tid, materia, "Taller", f"Taller {materia} ({d.strftime('%d/%m')})",
-                              due, cfg["dificultad"], None, d, a_min(lecs[0]["fin"]), True))
+                              due, cfg["dificultad"], None, d, a_min(lecs[0]["fin"]), True, datos.get("historial")))
         d += timedelta(days=1)
     return res
 

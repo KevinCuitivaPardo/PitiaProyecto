@@ -1,0 +1,37 @@
+\section{Descripción del problema}\label{sec:seleccion}
+
+\subsection{Criterios de selección}
+
+Para elegir entre los tres problemas se definieron cinco criterios, con un peso según su importancia para un proyecto de un semestre:
+
+\begin{enumerate}
+    \item \textbf{Acceso a datos y usuarios reales (30\,\%).} Que el equipo pueda obtener datos propios y probar con usuarios sin depender de terceros.
+    \item \textbf{Viabilidad de una prueba de concepto funcional en un semestre (25\,\%).}
+    \item \textbf{Pertinencia para el curso (20\,\%).} Que el núcleo del problema sea de inteligencia artificial y no solo de desarrollo de software.
+    \item \textbf{Verificabilidad (15\,\%).} Que se pueda comprobar con casos de prueba y métricas si la solución funciona.
+    \item \textbf{Bajo riesgo ético y de privacidad (10\,\%).} Que la solución no maneje datos sensibles de terceros.
+\end{enumerate}
+
+Cada problema se calificó de 1 (muy desfavorable) a 5 (muy favorable). La tabla~\ref{tab:seleccion} muestra las calificaciones y el puntaje ponderado.
+
+\begin{table}[H]
+\centering\footnotesize\setlength{\tabcolsep}{4pt}
+\caption{Selección del problema (calificación de 1 a 5)}\label{tab:seleccion}
+\begin{tabular}{lccccc r}
+\toprule
+Problema & Datos (30\,\%) & Viabilidad (25\,\%) & Curso (20\,\%) & Verificable (15\,\%) & Ética (10\,\%) & Total \\
+\midrule
+1. Planeación del tiempo & 5 & 4 & 4 & 5 & 5 & \textbf{4,55} \\
+2. Alerta de riesgo académico & 2 & 2 & 5 & 3 & 2 & 2,75 \\
+3. Orientación en la carga de materias & 3 & 3 & 4 & 3 & 3 & 3,20 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Problema seleccionado}
+
+Se seleccionó el \textbf{problema 1: la planeación del tiempo de estudio}. Los problemas 2 y 3 puntúan alto en pertinencia pero dependen de datos históricos sensibles que el equipo no tiene, mientras que el problema 1 se puede construir y evaluar con el horario y las materias del propio equipo.
+
+Formulado con precisión: \emph{dados} el horario fijo de clases de un semestre, los créditos de cada materia, la disponibilidad real del estudiante (a qué hora puede empezar a trabajar cada día) y los trabajos registrados con su fecha de entrega y dificultad, \emph{generar} un plan de las próximas semanas que indique qué trabajar, cuándo y por qué, de modo que las entregas se cumplan con margen, la carga diaria sea sostenible y el estudiante pueda entender y ajustar el plan.
+
+El problema es difícil porque los datos se cruzan: un crédito equivale a horas de trabajo dentro y fuera del aula \parencite{MEN2019}; los laboratorios pueden ser semanales o quincenales (semanas pares o impares); las entregas se acumulan en ciertas semanas; y la dificultad percibida de cada trabajo cambia cuánto tiempo y cuánto margen requiere.

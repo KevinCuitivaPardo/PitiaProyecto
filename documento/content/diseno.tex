@@ -1,0 +1,185 @@
+\section{Diseño metodológico}\label{sec:diseno}
+
+\subsection{Estrategia general y justificación}
+
+La estrategia elegida es un \textbf{sistema basado en conocimiento con planificación heurística y aprendizaje ligero}: reglas del dominio calculan cuánto tiempo necesita cada cosa, un planificador de tipo \emph{Earliest Deadline First} (EDF) con restricciones de bienestar reparte ese tiempo en los huecos reales, y un módulo de calibración aprende de las horas que el estudiante registra. La tabla~\ref{tab:alternativas} compara la estrategia con otras opciones.
+
+\begin{table}[H]
+\centering\small
+\caption{Alternativas consideradas}\label{tab:alternativas}
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.6cm} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X}
+\toprule
+Alternativa & Ventaja & Por qué no se eligió \\
+\midrule
+Optimización exacta (programación entera o por restricciones) & Puede garantizar el óptimo & Requiere un solucionador externo, modelar preferencias es costoso y el resultado es difícil de explicar; es innecesario a esta escala \\
+Modelo de lenguaje generativo & Interacción flexible en lenguaje natural & No es determinista, puede violar restricciones duras (choques de horario) y no se puede verificar automáticamente; por eso no decide el plan y solo se admite como capa opcional y acotada del chat (sección~\ref{sec:tipo-ia}) \\
+Aprendizaje supervisado de extremo a extremo & Aprende patrones de planes & No existe un conjunto de planes buenos con el cual entrenar \\
+\textbf{Reglas + planificación heurística + calibración} & Determinista, explicable, verificable y rápida & No garantiza el óptimo \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+EDF es óptimo para tareas independientes y expropiables que comparten un solo recurso: si existe un orden que cumple todos los plazos, EDF lo encuentra \parencite{Liu1973}. Aquí se añaden restricciones que rompen esa garantía (huecos no continuos, topes diarios, colchones), por lo que se usa como heurística. De la literatura de programación de horarios se adopta la distinción entre restricciones \emph{duras}, que nunca pueden violarse, y \emph{blandas}, que se procuran \parencite{Schaerf1999}.
+
+\subsection{Dónde se concentra la inteligencia}
+
+La inteligencia del sistema combina conocimiento, razonamiento y aprendizaje.
+
+\textbf{Conocimiento (qué sabe el sistema).}
+\begin{itemize}
+    \item Un crédito equivale a 48 horas en 16 semanas \parencite{MEN2019}: el estudio independiente semanal de una materia de $c$ créditos es $h_{ind}=\max(0,\,3c-h_{clase})$, donde un laboratorio quincenal cuenta la mitad de sus horas.
+    \item Horas base por tipo de trabajo $b$ (taller 2 h, laboratorio 3 h, proyecto 6 h, parcial 5 h) y factores por dificultad $d$ (fácil 0,75; medio 1; difícil 1,5). Son supuestos propios, que la calibración corrige.
+    \item Un margen de seguridad $m$ antes de la entrega según la dificultad (0, 1 o 2 días).
+    \item Reglas de calendario: paridad de las semanas de laboratorio, hora de salida y de inicio de trabajo, días no disponibles.
+    \item Reglas de bienestar: tope de 6 horas de trabajo por día, máximo de 2 horas por tarea y por día (4 si la entrega es a un día o menos) y bloques de entre 1 y 2 horas.
+\end{itemize}
+
+\textbf{Razonamiento (cómo decide).}
+\begin{itemize}
+    \item \emph{Estimación de tiempo:} $h(t)=\lceil 2\,b\,d\,\phi_{tipo}\rceil/2$ horas, con $\phi_{tipo}$ el factor aprendido (1 si no hay datos) y redondeo a múltiplos de 30 minutos. Si el estudiante fija las horas, se respetan.
+    \item \emph{Prioridad:} se atiende primero la tarea con menor $p(t)=\text{entrega}(t)-m(\text{dificultad})$; en caso de empate, la más difícil.
+    \item \emph{Reparto:} dos pasadas sobre los mismos huecos; primero las entregas y después el estudio independiente con lo que sobra.
+    \item \emph{Detección de inviabilidad:} si una tarea no cabe antes de su plazo, el sistema lo advierte y dice cuántas horas faltan, en lugar de ocultarlo.
+    \item \emph{Explicación y consejo:} cada bloque incluye su motivo y un módulo asesor aplica reglas sobre el plan (colchón, concentración de entregas, semanas pesadas, estudio por debajo de la meta, entre otras) para producir recomendaciones con fecha y acción concreta.
+\end{itemize}
+
+\textbf{Aprendizaje (cómo mejora).} Cuando el estudiante marca un trabajo como hecho puede registrar cuántas horas le tomó. Con las razones $r_i=h_{real,i}/h_{base,i}$ se calcula un factor por tipo de trabajo:
+\begin{equation}
+\phi_{glob}=\exp\!\left(\frac{\sum_i \ln r_i}{n+K}\right),\qquad
+\phi_{tipo}=\exp\!\left(\frac{\sum_{i\in tipo}\ln r_i + K\ln\phi_{glob}}{n_{tipo}+K}\right),\qquad \phi\in[0{,}5;\,2]
+\end{equation}
+con $K=3$ observaciones ``virtuales'' que anclan el factor en 1. Con cero registros el factor es exactamente 1 y el plan no cambia; con más datos se acerca a la razón observada. Se eligió este método (promedio geométrico encogido hacia 1) porque es estable con muy pocos ejemplos y se puede explicar al usuario con una tabla.
+
+\input{content/tipo_ia}
+
+\subsection{Herramientas}
+
+\begin{itemize}
+    \item \textbf{Python 3, solo biblioteca estándar,} para el motor y el servidor local: no requiere instalar dependencias, es fácil de ejecutar y de reproducir, y el código del planificador es legible.
+    \item \textbf{HTML, CSS y JavaScript sin bibliotecas} para la interfaz: se abre en cualquier navegador y no necesita compilación.
+    \item \textbf{JSON} como formato de datos: legible por una persona y fácil de validar.
+    \item \textbf{unittest} para las pruebas automáticas, y un guion de evaluación propio (\texttt{pruebas/evaluacion.py}) con semilla fija para las simulaciones.
+    \item \textbf{Matplotlib} para los diagramas y las figuras, y \textbf{\LaTeX} con la plantilla institucional para este documento.
+\end{itemize}
+
+\subsection{Arquitectura de la solución}
+
+La figura~\ref{fig:arquitectura} muestra los componentes y sus relaciones. El navegador solo presenta y recoge datos; todo el razonamiento ocurre en el servidor local, de modo que existe una única implementación del motor.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{img/arquitectura.png}
+\caption{Arquitectura del MVP: interfaz web, servidor local y motor de recomendación}\label{fig:arquitectura}
+\end{figure}
+
+\begin{table}[H]
+\centering\small
+\caption{Componentes del motor y del servidor}\label{tab:componentes}
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{4cm} >{\raggedright\arraybackslash}X}
+\toprule
+Componente (archivo) & Responsabilidad \\
+\midrule
+Motor de planificación (\texttt{motor/semestria.py}) & Créditos a horas, huecos, entregas automáticas, planificador EDF, advertencias y resumen semanal \\
+Calibración (\texttt{motor/calibracion.py}) & Factor por tipo de trabajo aprendido de las horas reales \\
+Asesor (\texttt{motor/asesor.py}) & Validación de horarios importados, recomendaciones e indicadores \\
+Asistente (\texttt{motor/asistente.py}) & Detección de intenciones, respuestas sobre el horario, base de 12 métodos de estudio con evidencia, entrevista y plan personal, y puente opcional al modelo local \\
+Progreso (\texttt{motor/progreso.py}) & Horas cumplidas, planeadas y necesarias por semana, tareas terminadas y rachas \\
+Servidor (\texttt{servidor.py}) & Sirve la interfaz y expone \texttt{GET /api/ejemplo}, \texttt{POST /api/importar} (valida y normaliza un horario) y \texttt{POST /api/plan} (devuelve plan, recomendaciones, indicadores, calibración y progreso), además de \texttt{POST /api/chat}, \texttt{POST /api/chat\_llm} y \texttt{GET /api/asistente\_estado} para el asistente \\
+Interfaz (\texttt{prototipo/}) & Asistente de cuatro pasos y panel con resumen, calendario, tablero de trabajos, progreso, asistente personal y ajustes \\
+Datos (\texttt{datos/}) & Horario real del equipo usado como ejemplo \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Componente principal: el planificador}
+
+El planificador (función \texttt{planificar}) transforma los datos en el plan. La figura~\ref{fig:algoritmo} resume sus pasos y la lista siguiente (P1 a P6) los detalla.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{img/algoritmo.png}
+\caption{Pasos del algoritmo de recomendación}\label{fig:algoritmo}
+\end{figure}
+
+\begin{enumerate}[label=\textbf{P\arabic*.}, leftmargin=*]
+    \item \textbf{Leer y calcular metas.} Obtener el horizonte (hasta el domingo de la segunda semana siguiente, o la última entrega registrada) y las metas de estudio independiente por materia.
+    \item \textbf{Armar las tareas.} Unir los trabajos pendientes del estudiante con los informes de laboratorio y talleres de clase que se derivan del horario (cada uno solo puede empezar después de la sesión que lo origina), con sus horas estimadas y calibradas.
+    \item \textbf{Calcular los huecos de cada día.} Para cada día del horizonte, restar las clases de la franja de 7:00 a 21:00; tras la última clase solo cuenta lo que queda a partir de la hora en que el estudiante puede empezar a trabajar; descartar huecos menores a 1 hora, los días no disponibles y el tiempo ya transcurrido hoy.
+    \item \textbf{Pasada 1: tareas.} Recorrer cada hueco en pasos de 30 minutos mientras no se alcance el tope diario. Entre las tareas candidatas (con tiempo pendiente, dentro de su plazo y sin superar el tope por tarea y día) elegir la de menor prioridad $p(t)$ y asignarle un bloque de 1 a 2 horas, o lo que le falte si es menos.
+    \item \textbf{Pasada 2: estudio independiente.} Con el tiempo que sobra, completar semana por semana la meta de cada materia (descontando lo ya dedicado a sus tareas), empezando por la de mayor déficit.
+    \item \textbf{Explicar y advertir.} Adjuntar a cada bloque su motivo; si una tarea quedó con tiempo pendiente, emitir la advertencia «no alcanza el tiempo» con las horas que faltan; si un trabajo ya venció, avisar.
+\end{enumerate}
+
+La tabla~\ref{tab:parametros} reúne los parámetros del algoritmo. El costo crece con el número de días del horizonte, de huecos por día y de tareas; en la evaluación (sección~\ref{sec:resultados}) cada plan tarda en promedio \resMsMedia\ ms.
+
+\begin{table}[H]
+\centering\small
+\caption{Parámetros del planificador (valores por defecto)}\label{tab:parametros}
+\begin{tabular}{ll}
+\toprule
+Parámetro & Valor \\
+\midrule
+Horas base por tipo (taller, laboratorio, proyecto, parcial) & 2 h, 3 h, 6 h, 5 h \\
+Factor por dificultad (fácil, medio, difícil) & 0,75; 1; 1,5 \\
+Margen antes de la entrega (fácil, medio, difícil) & 0, 1, 2 días \\
+Franja de trabajo & 7:00 a 21:00 \\
+Tope de trabajo por día & 6 h \\
+Tope por tarea y día & 2 h (4 h si la entrega es en $\leq$ 1 día) \\
+Bloque mínimo y máximo & 60 y 120 min (paso de 30 min) \\
+Hueco mínimo aprovechable & 60 min \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\input{auto/tabla_ejemplo_plan}
+
+\input{content/asistente_progreso}
+
+\subsection{Interfaz del MVP}
+
+La interfaz evolucionó desde el prototipo en papel del Hito 1 y el prototipo navegable del Hito 2 hasta un MVP con funciones reales. Se organiza en dos momentos. Primero, un \textbf{asistente de cuatro pasos} (inicio, horario y créditos, trabajos y revisión final) que termina con el botón «Empezar mi semestre», que fija el horario. Después, un \textbf{panel} con las secciones resumen, calendario, trabajos, progreso, asistente personal y ajustes (las dos últimas se describen en la sección~\ref{sec:asistente}). Las figuras~\ref{fig:revision} a~\ref{fig:tablero} muestran las pantallas principales con los datos de ejemplo (con un trabajo en curso y uno hecho).
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{img/pant_04_revision_final.png}
+\caption{Último paso del asistente: revisión y botón «Empezar mi semestre»}\label{fig:revision}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{img/pant_05_resumen.png}
+\caption{Resumen: agenda de hoy, indicadores, próximas entregas y recomendaciones}\label{fig:resumen}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{img/pant_06_calendario_semana.png}
+\caption{Calendario semanal con clases, tareas, estudio y entregas}\label{fig:calendario}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{img/pant_08_trabajos_tablero.png}
+\caption{Tablero de trabajos: por hacer, en curso y hecho}\label{fig:tablero}
+\end{figure}
+
+\subsection{Consideraciones éticas}
+
+\begin{itemize}
+    \item \textbf{Autonomía.} El sistema recomienda, y la persona decide: puede editar horas, fechas y disponibilidad, marcar trabajos como hechos o ignorar el plan.
+    \item \textbf{Privacidad.} Todo se ejecuta en el computador del estudiante; el horario y los trabajos no se envían a terceros, ni siquiera al modelo de lenguaje opcional, que también corre en local, y el estado se guarda en el propio navegador. El estudiante puede descargar o borrar sus datos.
+    \item \textbf{Salud y consejos.} El asistente da orientación general de estudio y bienestar, no consejos médicos ni psicológicos; ante nervios intensos remite a bienestar universitario o a un profesional. Los métodos citan estudios, pero sus efectos son promedios y no garantías.
+    \item \textbf{Bienestar.} Los topes diarios, los márgenes por dificultad y los días sin disponibilidad evitan jornadas excesivas; el asesor advierte cuando hay días seguidos casi al tope.
+    \item \textbf{Transparencia.} Cada bloque dice por qué está donde está, cada recomendación explica qué detectó y qué hacer, y la calibración muestra el factor aprendido.
+    \item \textbf{Honestidad sobre los límites.} Cuando algo no cabe, el sistema lo dice y propone alternativas en lugar de ocultarlo.
+\end{itemize}
+
+\subsection{Fuentes del diseño y del código}
+
+\begin{itemize}
+    \item \textbf{Código:} escrito por el equipo; usa solo la biblioteca estándar de Python y JavaScript del navegador, sin bibliotecas de terceros. Se reparte en el motor (\texttt{motor/}), el servidor (\texttt{servidor.py}), la interfaz (\texttt{prototipo/}) y las pruebas (\texttt{pruebas/}); el anexo~\ref{anexo:estructura} muestra la estructura y cómo ejecutarlo.
+    \item \textbf{Datos:} \texttt{datos/horario\_ejemplo.json} es el horario real del equipo; los créditos de algunas materias son supuestos.
+    \item \textbf{Fuentes del diseño:} la equivalencia entre créditos y horas viene de la norma colombiana \parencite{MEN2019}; el orden por fecha límite, de la teoría de planificación \parencite{Liu1973,Russell2021}; la distinción entre restricciones duras y blandas, de la literatura de horarios \parencite{Schaerf1999}. Las horas base por tipo de trabajo y los márgenes por dificultad son \textbf{supuestos propios}, sin calibrar con datos externos; para eso existe el módulo de calibración.
+    \item \textbf{Fuentes del asistente:} los métodos de estudio y bienestar proceden de la literatura citada en la tabla~\ref{tab:metodos}; las reglas que los eligen según el perfil son propias. La capa opcional usa un modelo de terceros preentrenado (Qwen2.5 mediante Ollama) sin modificarlo.
+    \item \textbf{Historial:} el prototipo navegable del Hito 2 (con una réplica del motor en JavaScript) se conserva en la carpeta \texttt{archivo\_hito2/}.
+\end{itemize}

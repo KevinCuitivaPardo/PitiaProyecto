@@ -7,7 +7,8 @@ const CHK = SVG('<path d="M5 12.5l4.5 4.5L19 7.5"/>', 13);
 const NAV = [["resumen", SVG('<path d="M4 11l8-7 8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/>'), "Resumen"],
              ["calendario", SVG('<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>'), "Calendario"],
              ["trabajos", SVG('<rect x="4" y="4" width="7" height="16" rx="1.5"/><rect x="13" y="4" width="7" height="10" rx="1.5"/>'), "Trabajos"],
-             ["consejos", SVG('<path d="M5 5h14v10H9l-4 4z"/>'), "Recomendaciones"],
+             ["progreso", SVG('<path d="M5 20V10M12 20V4M19 20v-7"/>'), "Progreso"],
+             ["asistente", SVG('<path d="M5 5h14v10H9l-4 4z"/>'), "Asistente"],
              ["ajustes", SVG('<path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/>'), "Ajustes"]];
 const PAL = ["#0a6cdb", "#c2477a", "#2f9e6e", "#d98a1c", "#7e57c2", "#1a9aa8", "#d6453d", "#7f8c3a"];
 const CAT = { foco: "Hoy", riesgo: "Riesgo", estrategia: "Estrategia", carga: "Carga",
@@ -30,16 +31,39 @@ const tint = (hex, k = .86) => { const n = parseInt(hex.slice(1), 16); const m =
   return `rgb(${m(n >> 16)},${m(n >> 8 & 255)},${m(n & 255)})`; };
 
 let S = { datos: null, listo: false, vista: "w_inicio", ahora: null, config: { max_horas_dia: 6, usar_huecos: true },
-          offset: 0, cal: "semana", mes: 0, filtro: { materia: "", auto: true }, catf: "todos", visto: {} };
+          offset: 0, cal: "semana", mes: 0, filtro: { materia: "", auto: true }, catf: "todos", visto: {}, chat: [], usarLLM: true };
 let plan = null;
 
-const guardar = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* sin almacenamiento */ } };
+let DEMO = false;   // con #demo=... no se toca el almacenamiento del usuario (sirve para capturas)
+const guardar = () => { if (DEMO) return; try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* sin almacenamiento */ } };
 const hoy = () => fechaDe(S.ahora.slice(0, 10));
 const colorDe = m => { const i = S.datos.materias.findIndex(x => x.codigo === m); return PAL[(i < 0 ? 0 : i) % PAL.length]; };
 const setAhora = v => { S.ahora = v; guardar(); };
 
 /* ================= datos y plan ================= */
+async function modoDemo() {
+  const m = location.hash.match(/^#demo=(\w+)/);
+  if (!m) return false;
+  const v = m[1], listo = ["resumen", "calendario", "mes", "trabajos", "progreso", "asistente", "asistente_perfil", "recomendaciones", "ajustes"].includes(v);
+  DEMO = true;
+  S.ahora = v === "progreso" ? "2026-10-15T18:00" : "2026-10-12T09:00";   // el jueves ya hay actividad en la semana
+  S.config = { max_horas_dia: 6, usar_huecos: true }; S.offset = 0; S.mes = 0; S.visto = {}; S.chat = [];
+  S.datos = v === "inicio" ? null : await (await fetch("/api/ejemplo")).json();
+  if (S.datos) {
+    S.datos.en_curso = ["m1"];
+    S.datos.historial = [["Taller", 2, 2.5], ["Taller", 1.5, 2], ["Laboratorio", 4.5, 5], ["Parcial", 7.5, 9]].map(([tipo, b, r]) => ({ tipo, base_h: b, real_h: r }));
+    sembrarActividad(S.datos);
+  }
+  S.listo = listo; S.cal = v === "mes" ? "mes" : "semana";
+  S.vista = { inicio: "w_inicio", horario: "w_horario", trabajos_setup: "w_trabajos", revision: "w_revision", mes: "calendario", recomendaciones: "asistente", asistente_perfil: "asistente" }[v] || v;
+  if (S.datos) await replanificar(); else render();
+  if (v === "asistente" || v === "recomendaciones") await demoChat(false);
+  if (v === "asistente_perfil") await demoChat(true);
+  return true;
+}
+
 async function init() {
+  if (await modoDemo()) return;
   try { const g = JSON.parse(localStorage.getItem(KEY)); if (g && g.datos) S = Object.assign(S, g); } catch (e) { /* estado nuevo */ }
   if (!S.ahora) S.ahora = ahoraStr();
   if (S.datos) await replanificar(); else render();
@@ -62,7 +86,14 @@ async function subirArchivo(f) {
     await cargarDatos(j.datos);
   } catch (e) { box.innerHTML = `<div class="err">No pude leer el archivo.</div>`; }
 }
+function registrarUso() {
+  if (!S.datos || DEMO) return;
+  const hoyIso = S.ahora.slice(0, 10);
+  S.datos.uso = S.datos.uso || [];
+  if (!S.datos.uso.includes(hoyIso)) S.datos.uso.push(hoyIso);
+}
 async function replanificar() {
+  registrarUso();
   const r = await fetch("/api/plan", { method: "POST", headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ datos: S.datos, ahora: S.ahora, config: S.config }) });
   plan = await r.json();
@@ -70,9 +101,45 @@ async function replanificar() {
   guardar(); render();
 }
 function setEstado(id, estado) {
+  if (estado === "hecho" && estadoDe(id) !== "hecho" && plan.tareas.some(t => t.id === id)) return pedirHoras(id);
+  aplicarEstado(id, estado);
+}
+function pedirHoras(id) {
+  const t = plan.tareas.find(x => x.id === id), dlg = $("#dlg");
+  if (t.fija) return aplicarEstado(id, "hecho");   // el estudiante fijó las horas: no hay nada que calibrar
+  const base = t.base_min / 60;
+  dlg.innerHTML = `<form method="dialog"><h3>${esc(t.titulo)}</h3>
+    <p class="sub" style="margin:0">Estimamos ${+base.toFixed(1)} h. Si anotas cuánto te tomó de verdad, ajustamos tus próximos trabajos a tu ritmo.</p>
+    <div class="fld">Horas reales (opcional)<input type="number" id="hr" min="0.25" step="0.25" autofocus></div>
+    <div class="row" style="justify-content:flex-end"><button type="button" class="b g" id="om">Omitir</button><button class="b">Guardar</button></div></form>`;
+  dlg.showModal();
+  $("#om").onclick = () => { dlg.close(); aplicarEstado(id, "hecho"); };
+  dlg.querySelector("form").onsubmit = () => {
+    const v = parseFloat($("#hr").value);
+    if (v > 0) {
+      (S.datos.historial = S.datos.historial || []).push({ id, tipo: t.tipo, materia: t.materia, base_h: base, real_h: v });
+      // las horas reales alimentan el progreso; se descuenta lo ya marcado en bloques para no contarlo dos veces
+      const ya = (S.datos.sesiones || []).filter(s => s.tarea_id === id).reduce((a, s) => a + s.min, 0);
+      if (v * 60 > ya) agregarSesion({ fecha: S.ahora.slice(0, 10), min: Math.round(v * 60 - ya), materia: t.materia, titulo: t.titulo, tipo: t.tipo, tarea_id: id, origen: "horas_reales" });
+    }
+    aplicarEstado(id, "hecho");
+  };
+}
+function aplicarEstado(id, estado) {
   const d = S.datos;
   d.hechas = d.hechas.filter(x => x !== id); d.en_curso = (d.en_curso || []).filter(x => x !== id);
-  if (estado === "hecho") d.hechas.push(id); else if (estado === "curso") d.en_curso.push(id);
+  d.hechas_fecha = d.hechas_fecha || {};
+  if (estado === "hecho") { d.hechas.push(id); d.hechas_fecha[id] = S.ahora.slice(0, 10); } else { delete d.hechas_fecha[id]; if (estado === "curso") d.en_curso.push(id); }
+  replanificar();
+}
+/* sesiones: bloques que el estudiante marca como cumplidos (alimentan Progreso) */
+const agregarSesion = s => (S.datos.sesiones = S.datos.sesiones || []).push(s);
+const mismoBloque = (s, b) => s.fecha === b.fecha && s.inicio === b.inicio && s.materia === b.materia && s.titulo === b.titulo;
+const bloqueCumplido = b => (S.datos.sesiones || []).some(s => mismoBloque(s, b));
+function alternarCumplido(j) {
+  const b = plan.bloques[j];
+  if (bloqueCumplido(b)) S.datos.sesiones = S.datos.sesiones.filter(s => !mismoBloque(s, b));
+  else agregarSesion({ fecha: b.fecha, inicio: b.inicio, fin: b.fin, min: min(b.fin) - min(b.inicio), materia: b.materia, titulo: b.titulo, tipo: b.tipo, tarea_id: b.tarea_id, origen: "bloque" });
   replanificar();
 }
 const estadoDe = id => S.datos.hechas.includes(id) ? "hecho" : (S.datos.en_curso || []).includes(id) ? "curso" : "pend";
@@ -93,7 +160,7 @@ function renderSide() {
   const alta = plan ? plan.consejos.filter(c => c.nivel === "alta").length : 0;
   let h = `<div class="brand">Semestr<span>IA</span></div><div class="tag">Organiza tu semestre</div>`;
   if (S.listo && S.datos) {
-    h += NAV.map(([k, ic, t]) => `<button class="nv ${S.vista === k ? "on" : ""}" data-ir="${k}"><span>${ic}</span>${t}${k === "consejos" && alta ? `<span class="badge">${alta}</span>` : ""}</button>`).join("");
+    h += NAV.map(([k, ic, t]) => `<button class="nv ${S.vista === k ? "on" : ""}" data-ir="${k}"><span>${ic}</span>${t}${k === "asistente" && alta ? `<span class="badge">${alta}</span>` : ""}</button>`).join("");
   }
   h += `<div class="push"></div><label>Fecha simulada</label><input type="datetime-local" id="ahora" value="${S.ahora || ""}">
         <button class="mini" id="usarhoy">Usar fecha de hoy</button>`;
@@ -122,10 +189,12 @@ function render() {
   $("#det").style.display = "none";
   if (S.datos && !plan) { replanificar(); return; }
   if (!S.datos) S.vista = "w_inicio";
+  if (S.vista === "consejos") S.vista = "asistente";       // la sección Recomendaciones ahora es el asistente
   if (S.listo && S.vista.startsWith("w_")) S.vista = "resumen";
   if (!S.listo && !S.vista.startsWith("w_")) S.vista = "w_horario";
   const V = { w_inicio: vInicio, w_horario: () => vHorario(true), w_trabajos: vTrabajos, w_revision: vRevision,
-              resumen: vResumen, calendario: vCalendario, trabajos: vTrabajos, consejos: vConsejos, ajustes: () => vHorario(false) };
+              resumen: vResumen, calendario: vCalendario, trabajos: vTrabajos, progreso: () => vProgreso(), asistente: () => vAsistente(),
+              ajustes: () => vHorario(false) };
   renderSide();
   V[S.vista]();
   if (S.vista.startsWith("w_")) {
@@ -179,6 +248,7 @@ function vHorario(wiz) {
   <td>Empiezo a las <input type="time" data-ini="${d}" value="${x.inicio_trabajo || ""}" ${x.disponible ? "" : "disabled"}></td></tr>`; }).join("")}</table>
   <p><label><input type="checkbox" id="huecos" ${S.config.usar_huecos ? "checked" : ""}> Aprovechar huecos entre clases (1 h o más)</label></p>
   <p><label>Máximo de horas de trabajo por día <input type="number" id="maxh" min="1" max="12" step="0.5" value="${S.config.max_horas_dia}" style="width:70px"></label></p></div>
+  ${wiz ? "" : calibracionHTML() + asistenteAjustesHTML()}
   ${wiz ? "" : `<div class="card"><h3>Semestre</h3><div class="row"><button class="b g" data-ir="w_inicio" id="otro">Cargar otro horario</button><button class="b g" id="reini" style="color:var(--bad)">Reiniciar semestre</button></div></div>`}`;
   document.querySelectorAll("[data-rm]").forEach(a => a.onclick = e => { e.preventDefault(); S.datos.bloques.splice(+a.dataset.rm, 1); replanificar(); });
   $("#nclase").onsubmit = e => { e.preventDefault(); const f = Object.fromEntries(new FormData(e.target));
@@ -191,6 +261,17 @@ function vHorario(wiz) {
   $("#huecos").onchange = e => { S.config.usar_huecos = e.target.checked; replanificar(); };
   $("#maxh").onchange = e => { S.config.max_horas_dia = Math.max(1, +e.target.value || 6); replanificar(); };
   if ($("#reini")) $("#reini").onclick = reiniciar;
+  if (!wiz) conectarAjustesAsistente();
+  if ($("#borrarhist")) $("#borrarhist").onclick = () => { if (confirm("¿Borrar el historial de horas reales?")) { S.datos.historial = []; replanificar(); } };
+}
+
+function calibracionHTML() {
+  const n = (S.datos.historial || []).length;
+  return `<div class="card"><h3>Calibración de estimaciones</h3>
+    <p class="sub" style="margin-top:-4px">Aprende de las horas reales que registras al terminar un trabajo. Un factor de 1,00 significa que se usa la estimación base. ${n ? `Tienes ${n} registro(s).` : "Aún no hay registros."}</p>
+    <table><tr><th>Tipo de trabajo</th><th class="n">Registros</th><th class="n">Factor aplicado</th></tr>
+    ${plan.calibracion.map(c => `<tr><td>${c.tipo}</td><td class="n">${c.registros}</td><td class="n"><b>${c.factor.toFixed(2).replace(".", ",")}</b></td></tr>`).join("")}</table>
+    ${n ? `<p style="margin:12px 0 0"><button class="b g sm" id="borrarhist">Borrar historial</button></p>` : ""}</div>`;
 }
 
 /* ================= 3. trabajos (tablero) ================= */
@@ -282,7 +363,7 @@ function vRevision() {
     ${fila(disp > 0, "Disponibilidad", `${disp} ${disp === 1 ? "día" : "días"} a la semana · tope de ${S.config.max_horas_dia} h por día`)}
     ${fila(true, "Trabajos", `${S.datos.trabajos.length} agregados por ti + ${plan.tareas.filter(t => t.auto).length} automáticos (laboratorios y talleres)`)}
     ${fila(!plan.advertencias.length, "Plan", plan.advertencias.length ? `${plan.advertencias.length} ${plan.advertencias.length === 1 ? "advertencia" : "advertencias"}: ${esc(plan.advertencias[0].mensaje)}` : `${I.tareas_cubiertas} de ${I.tareas_pendientes} tareas con tiempo asegurado`)}
-  </div><div>${plan.consejos.slice(0, 3).map(tipHTML).join("")}</div></div>
+  </div><div>${plan.consejos.slice(0, 3).map(c => tipHTML(c)).join("")}</div></div>
   <div class="card final"><h3 style="font-size:20px;margin-bottom:6px">${alta.length ? "Tienes puntos por resolver, pero puedes empezar" : "¡Tu semestre está organizado!"}</h3>
     <p class="sub" style="margin-bottom:16px">${alta.length ? "Las recomendaciones urgentes te dicen cómo resolverlos." : "Empieza y revisa tu plan cada día."}</p>
     <button class="b big" id="go" ${ok ? "" : "disabled"}>Empezar mi semestre</button></div>
@@ -291,18 +372,17 @@ function vRevision() {
 }
 
 /* ================= consejos ================= */
-function tipHTML(c) {
-  const nom = CAT[c.categoria] || "Consejo";
-  return `<div class="tip ${c.nivel}"><div class="cat">${c.nivel === "alta" ? "Urgente · " : ""}${nom}</div><b>${esc(c.titulo)}</b>
-    <p>${esc(c.texto)}</p>${c.accion ? `<p class="do">${esc(c.accion)}</p>` : ""}</div>`;
+/* tarjeta de recomendación; con `ir` es clicable y abre la conversación del asistente sobre ese tema */
+function tipHTML(c, ir) {
+  const nom = CAT[c.categoria] || "Consejo", i = plan.consejos.indexOf(c);
+  return `<div class="tip ${c.nivel} ${ir ? "click" : ""}" ${ir ? `data-cj="${i}" role="button" tabindex="0"` : ""}><div class="cat">${c.nivel === "alta" ? "Urgente · " : ""}${nom}</div><b>${esc(c.titulo)}</b>
+    <p>${esc(c.texto)}</p>${c.accion ? `<p class="do">${esc(c.accion)}</p>` : ""}${ir ? `<span class="hablar">Hablar con el asistente</span>` : ""}</div>`;
 }
-function vConsejos() {
-  const cats = ["todos", ...new Set(plan.consejos.map(c => c.categoria))];
-  const L = plan.consejos.filter(c => S.catf === "todos" || c.categoria === S.catf);
-  $("#v").innerHTML = `<h2>Recomendaciones</h2><p class="sub">Salen de reglas sobre tu propio plan (plazos, cargas y metas por créditos), no de un modelo de lenguaje; cada uno dice qué detectó y qué hacer.</p>
-  <div class="filtros">${cats.map(k => `<button class="pill ${S.catf === k ? "on" : ""}" data-cat="${k}">${k === "todos" ? "Todos" : (CAT[k] || k)}</button>`).join("")}</div>
-  <div style="max-width:820px">${L.map(tipHTML).join("") || '<div class="empty">Sin recomendaciones en esta categoría.</div>'}</div>`;
-  document.querySelectorAll("[data-cat]").forEach(b => b.onclick = () => { S.catf = b.dataset.cat; render(); });
+function conectarTips() {
+  document.querySelectorAll("[data-cj]").forEach(el => {
+    const abrir = () => { S.pendiente = { accion: { tipo: "consejo", consejo: plan.consejos[+el.dataset.cj] }, etiqueta: plan.consejos[+el.dataset.cj].titulo }; ir("asistente"); };
+    el.onclick = abrir; el.onkeydown = e => { if (e.key === "Enter") abrir(); };
+  });
 }
 
 /* ================= resumen (panel principal) ================= */
@@ -317,7 +397,7 @@ function clasesDelDia(f) {
 function vResumen() {
   const h = hoy(), I = plan.indicadores, k = iso(h), ini = fechaDe(S.datos.semestre_inicio), sem = Math.floor((h - ini) / 864e5 / 7) + 1;
   const items = [...clasesDelDia(h).map(b => ({ i: b.inicio, f: b.fin, t: `${b.materia} · ${b.tipo}`, m: b.materia, clase: true, s: b.salon })),
-                 ...plan.bloques.filter(b => b.fecha === k).map(b => ({ i: b.inicio, f: b.fin, t: b.titulo, m: b.materia, id: b.tarea_id, tipo: b.tipo, motivo: b.motivo }))].sort((a, b) => min(a.i) - min(b.i));
+                 ...plan.bloques.map((b, j) => ({ b, j })).filter(({ b }) => b.fecha === k).map(({ b, j }) => ({ i: b.inicio, f: b.fin, t: b.titulo, m: b.materia, id: b.tarea_id, tipo: b.tipo, motivo: b.motivo, j }))].sort((a, b) => min(a.i) - min(b.i));
   const prox = listaTrabajos().filter(t => t.estado !== "hecho").sort((a, b) => a.due.localeCompare(b.due)).slice(0, 5);
   const nh = Math.max(0, (S.datos.hechas || []).length), alta = plan.consejos.filter(c => c.nivel === "alta").length;
   $("#v").innerHTML = `<h2>${largo(h).replace(/^./, c => c.toUpperCase())}</h2><p class="sub">Semana ${sem} del semestre (${sem % 2 === 0 ? "par" : "impar"}) · ${I.horas_hoy ? `hoy tienes ${I.horas_hoy} h de trabajo planeado` : "hoy no tienes trabajo planeado"}</p>
@@ -329,11 +409,12 @@ function vResumen() {
   <div class="two"><div>
     <div class="card"><h3>Agenda de hoy</h3><div class="hoy-list">${items.map(x => { const c = colorDe(x.m);
       return `<div class="it"><div class="tm">${x.i}–${x.f}</div><span class="dot" style="background:${x.clase ? "#94a3b8" : c}"></span><div style="flex:1"><b>${esc(x.t)}</b><br><small>${x.clase ? "Clase" + (x.s ? " · " + esc(x.s) : "") : esc(x.motivo)}</small></div>
-      ${x.id ? `<button class="b g sm" data-hecho="${esc(x.id)}">${estadoDe(x.id) === "hecho" ? "Reabrir" : "Hecho"}</button>` : ""}</div>`; }).join("") || '<div class="empty">Día libre. ¡Descansa o adelanta algo!</div>'}</div></div>
+      ${x.j !== undefined ? `<button class="b ${bloqueCumplido(plan.bloques[x.j]) ? "" : "g"} sm" data-cumplido="${x.j}">${bloqueCumplido(plan.bloques[x.j]) ? "Cumplido" : "Marcar cumplido"}</button>` : ""}</div>`; }).join("") || '<div class="empty">Día libre. Descansa o adelanta algo.</div>'}</div></div>
     <div class="card"><h3>Próximas entregas <button class="b g sm" style="float:right" data-ir="trabajos">Ver tablero</button></h3>
       <table>${prox.map(t => { const [dt, dc] = dueTxt(t.due); return `<tr><td><span class="dot" style="background:${colorDe(t.materia)}"></span><b>${esc(t.titulo)}</b><br><small>${esc(t.materia)} · ${t.tipo}${t.estado === "curso" ? " · en curso" : ""}</small></td><td class="n"><b class="due ${dc}">${dt}</b></td></tr>`; }).join("") || '<tr><td class="empty">Sin entregas pendientes</td></tr>'}</table></div>
-  </div><aside><h3 style="margin-bottom:10px">Lo más importante ahora</h3>${plan.consejos.slice(0, 3).map(tipHTML).join("")}<button class="b g" data-ir="consejos" style="width:100%">Ver todas las recomendaciones</button></aside></div>`;
-  document.querySelectorAll("[data-hecho]").forEach(b => b.onclick = () => alternarHecho(b.dataset.hecho));
+  </div><aside><h3 style="margin-bottom:10px">Lo más importante ahora</h3>${plan.consejos.slice(0, 3).map(c => tipHTML(c, true)).join("")}<button class="b g" data-ir="asistente" style="width:100%">Abrir el asistente</button></aside></div>`;
+  document.querySelectorAll("[data-cumplido]").forEach(b => b.onclick = () => alternarCumplido(+b.dataset.cumplido));
+  conectarTips();
 }
 
 /* ================= calendario ================= */
@@ -358,7 +439,7 @@ function calSemana(h) {
   const horas = [...Array(H1 - H0)].map((_, i) => `<div>${String(H0 + i).padStart(2, "0")}:00</div>`).join("");
   const cols = dias.map((f, i) => { const k = iso(f), off = disp[i] && !disp[i].disponible;
     const cl = clasesDelDia(f).map(b => `<div class="ev clase" style="${pos(b.inicio, b.fin)};--c:${colorDe(b.materia)}" title="${esc(b.materia)} ${b.tipo} · ${esc(b.salon || "")}"><b>${esc(b.materia)}</b>${b.tipo} · ${b.inicio}${b.salon ? "<br>" + esc(b.salon) : ""}</div>`).join("");
-    const pl = plan.bloques.filter(b => b.fecha === k).map(b => { const j = plan.bloques.indexOf(b), hecha = b.tarea_id && S.datos.hechas.includes(b.tarea_id), c = colorDe(b.materia);
+    const pl = plan.bloques.filter(b => b.fecha === k).map(b => { const j = plan.bloques.indexOf(b), hecha = (b.tarea_id && S.datos.hechas.includes(b.tarea_id)) || bloqueCumplido(b), c = colorDe(b.materia);
       return `<div class="ev ${b.tipo} ${hecha ? "hecha" : ""}" data-b="${j}" style="${pos(b.inicio, b.fin)};--c:${c};--bg2:${tint(c, .84)}"><b>${esc(b.tipo === "estudio" ? "Estudio · " + b.materia : b.titulo)}</b>${b.inicio}–${b.fin}</div>`; }).join("");
     const now = k === iso(h) && nowMin >= H0 * 60 && nowMin <= H1 * 60 ? `<div class="now" style="top:${(nowMin - H0 * 60) / 60 * HH}px"></div>` : "";
     return `<div class="tg-col ${off ? "off" : ""} ${k === iso(h) ? "hoy" : ""}">${cl}${pl}${now}</div>`; }).join("");
@@ -383,8 +464,10 @@ function calMes(h) {
 function detalle(j) {
   const b = plan.bloques[j], d = $("#det"), c = colorDe(b.materia);
   d.innerHTML = `<div class="meta"><span class="mt"><i class="dot" style="background:${c}"></i>${esc(b.materia)}</span> <small>${corto(fechaDe(b.fecha))} · ${b.inicio}–${b.fin}</small></div><h3 style="margin:8px 0 0">${esc(b.titulo)}</h3><p>${esc(b.motivo)}</p>
-    <div class="row">${b.tarea_id ? `<button class="b" id="hecho">${estadoDe(b.tarea_id) === "hecho" ? "Reabrir tarea" : "Marcar como hecha"}</button>` : ""}<button class="b g" id="cerrar">Cerrar</button></div>`;
+    <div class="row"><button class="b ${bloqueCumplido(b) ? "g" : ""}" id="cumplido">${bloqueCumplido(b) ? "Quitar cumplido" : "Marcar bloque cumplido"}</button>
+      ${b.tarea_id ? `<button class="b g" id="hecho">${estadoDe(b.tarea_id) === "hecho" ? "Reabrir tarea" : "Tarea terminada"}</button>` : ""}<button class="b g" id="cerrar">Cerrar</button></div>`;
   d.style.display = "block"; $("#cerrar").onclick = () => d.style.display = "none";
+  $("#cumplido").onclick = () => alternarCumplido(j);
   if (b.tarea_id) $("#hecho").onclick = () => alternarHecho(b.tarea_id);
 }
 

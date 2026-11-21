@@ -1,6 +1,4 @@
-"""Genera los diagramas de diseño (PNG) usados en el documento del Hito 2.
-Uso:  python diseno/generar_diagramas.py
-"""
+"""Genera los diagramas de diseño (PNG) usados en el documento (MVP, Hito 3).\nUso:  python diseno/generar_diagramas.py\n"""
 import os
 import matplotlib
 matplotlib.use("Agg")
@@ -27,38 +25,43 @@ def flecha(ax, x1, y1, x2, y2, color=NAVY, rad=0.0):
                                  connectionstyle=f"arc3,rad={rad}", shrinkA=2, shrinkB=2))
 
 
-# ------------------------------------------------------------ Figura 1: arquitectura
-fig, ax = plt.subplots(figsize=(10, 6.4), dpi=200)
-ax.set_xlim(0, 20); ax.set_ylim(0, 12.8); ax.axis("off")
+# ------------------------------------------------------------ Figura 1: arquitectura del MVP
+fig, ax = plt.subplots(figsize=(10, 9.4), dpi=200)
+ax.set_xlim(0, 20); ax.set_ylim(0, 19); ax.axis("off")
 
-ax.text(0.2, 12.35, "Interfaz (prototipo web: HTML + JavaScript)", fontsize=10.5, fontweight="bold", color=NAVY, va="center")
-ax.add_patch(FancyBboxPatch((0.2, 9.0), 19.6, 2.95, boxstyle="round,pad=0.02,rounding_size=0.15", fc="#F2F5F8", ec="#C9D3DD", lw=1))
-pant = [("1. Horario", "subir y leer\nlos bloques"), ("2. Créditos y\ndisponibilidad", "hora de salida e\ninicio de trabajo"),
-        ("3. Labs y\nentregas", "frecuencia y semanas\npares / impares"), ("4. Trabajos", "proyectos, parciales\ny dificultad"), ("5. Mi semana", "plan, motivos y\nmarcar como hecho")]
-for i, (t, d) in enumerate(pant):
-    caja(ax, 0.55 + i * 3.88, 9.25, 3.45, 2.45, t, d, fc="white", fs=9.5)
-    if i < 4:
-        flecha(ax, 0.55 + i * 3.88 + 3.45, 10.47, 0.55 + (i + 1) * 3.88, 10.47)
+ax.text(0.2, 18.75, "Navegador (HTML + JavaScript, sin dependencias)", fontsize=10.5, fontweight="bold", color=NAVY, va="center")
+ax.add_patch(FancyBboxPatch((0.2, 15.0), 19.6, 3.25, boxstyle="round,pad=0.02,rounding_size=0.15", fc="#F2F5F8", ec="#C9D3DD", lw=1))
+caja(ax, 0.55, 15.25, 7.2, 2.75, "Asistente de 4 pasos", "1 Inicio (subir o usar ejemplo)\n2 Horario y créditos · 3 Trabajos\n4 Revisión y «Empezar mi semestre»", fc="white", fs=9.5)
+caja(ax, 8.35, 15.25, 11.1, 2.75, "Panel del semestre", "Resumen · Calendario (semana y mes) · Trabajos (tablero)\nProgreso (horas, tareas, esfuerzo, rachas)\nAsistente personal (chat y recomendaciones) · Ajustes", fc="white", fs=9.5)
+flecha(ax, 7.75, 16.6, 8.35, 16.6)
 
-caja(ax, 0.2, 4.7, 5.3, 3.2, "Modelo de datos (JSON)", "materias y créditos\nbloques LEC / LAB\nlabs y entregas\ndisponibilidad\ntrabajos y tareas hechas", fc=AMBER, fs=10)
-flecha(ax, 2.85, 9.0, 2.85, 7.9)
-ax.text(3.05, 8.45, "lee y escribe", fontsize=8, color=GREY, va="center")
+ax.text(5.0, 14.5, "JSON sobre HTTP:  /api/importar · /api/plan · /api/chat · /api/chat_llm · /api/ejemplo", ha="left", fontsize=8.4, color=GREY)
+flecha(ax, 17.5, 15.0, 17.5, 13.55)
 
-ax.add_patch(FancyBboxPatch((6.1, 3.7), 13.7, 4.6, boxstyle="round,pad=0.02,rounding_size=0.15", fc="#EAF0F7", ec=NAVY, lw=1.6))
-ax.text(6.4, 7.95, "Motor de recomendación (Python · réplica en JavaScript)", fontsize=10.5, fontweight="bold", color=NAVY, va="center")
-mods = [("Créditos\n→ horas", "48 h por crédito\nmeta de estudio =\ntotal − clase"), ("Horario\n→ huecos", "paridad de labs,\nsalida y hora de\ninicio de trabajo"),
-        ("Entregas\nautomáticas", "informes de lab y\ntalleres según las\nrespuestas"), ("Planificador", "EDF con colchón\npor dificultad,\ntope diario y\nmodo urgente")]
+caja(ax, 0.2, 8.1, 4.6, 4.9, "Datos (JSON)", "materias y créditos\nbloques LEC / LAB\nlabs y entregas\ndisponibilidad\ntrabajos y hechas\nhistorial de horas reales\nsesiones y uso (progreso)\nperfil de estudio", fc=AMBER, fs=10)
+ax.add_patch(FancyBboxPatch((5.4, 4.3), 14.4, 9.2, boxstyle="round,pad=0.02,rounding_size=0.15", fc="#EAF0F7", ec=NAVY, lw=1.6))
+ax.text(5.7, 13.1, "Servidor local + motor (Python, biblioteca estándar)", fontsize=10.5, fontweight="bold", color=NAVY, va="center")
+mods = [("Créditos\n→ horas", "48 h por crédito\nmeta de estudio"), ("Horario\n→ huecos", "paridad de labs,\nsalida e inicio\nde trabajo"),
+        ("Planificador", "EDF con colchón\npor dificultad,\ntope diario"), ("Calibración", "aprende de las\nhoras reales\n(factor por tipo)"), ("Asesor", "recomendaciones\ncon fecha y\nacción concreta")]
 for i, (t, d) in enumerate(mods):
-    caja(ax, 6.4 + i * 3.4, 4.0, 3.1, 3.5, t, d, fc="white", fs=9.5)
-    if i < 3:
-        flecha(ax, 6.4 + i * 3.4 + 3.1, 5.75, 6.4 + (i + 1) * 3.4, 5.75)
-flecha(ax, 5.5, 6.3, 6.1, 6.3)
+    caja(ax, 5.7 + i * 2.8, 8.55, 2.6, 3.9, t, d, fc="#FBEFD5" if t in ("Calibración", "Asesor") else "white", fs=9.2)
+    if i < 4:
+        flecha(ax, 5.7 + i * 2.8 + 2.6, 10.5, 5.7 + (i + 1) * 2.8, 10.5)
+flecha(ax, 4.8, 10.0, 5.4, 10.0)
 
-caja(ax, 6.1, 0.4, 13.7, 2.5, "Salida del motor", "bloques recomendados con fecha, hora, materia, dificultad y su motivo\nresumen semanal por materia y advertencias\n(«no alcanza el tiempo», «vencida»)\nSe muestra en la pantalla «Mi semana»", fc=SAGE_L, ec="#7FA35E", fs=10)
-flecha(ax, 12.95, 3.7, 12.95, 2.9)
+caja(ax, 5.7, 4.6, 3.9, 3.25, "Progreso", "horas cumplidas vs.\nnecesarias, tareas,\nrachas de estudio y uso", fc="white", fs=9.2)
+caja(ax, 10.0, 4.6, 4.9, 3.25, "Asistente (motor propio)", "intenciones por palabras clave\n12 métodos con evidencia\nentrevista de 5 preguntas", fc="#FBEFD5", fs=9.2)
+ax.add_patch(FancyBboxPatch((15.3, 4.6), 4.2, 3.25, boxstyle="round,pad=0.02,rounding_size=0.12", fc="white", ec=GREY, lw=1.4, ls="--"))
+ax.text(17.4, 7.65, "Modelo local\n(opcional)", ha="center", va="top", fontsize=9.2, fontweight="bold", color=INK)
+ax.text(17.4, 6.45, "Ollama · qwen2.5:3b\n(red neuronal tipo\ntransformer); solo redacta\npreguntas abiertas", ha="center", va="top", fontsize=7.4, color=GREY, linespacing=1.4)
+flecha(ax, 14.9, 6.2, 15.3, 6.2, color=GREY)
+flecha(ax, 9.6, 6.2, 10.0, 6.2)
+flecha(ax, 12.45, 8.55, 12.45, 7.85)
 
-caja(ax, 0.2, 0.4, 5.3, 2.5, "Verificación", "24 pruebas unitarias\ncruce JS ↔ Python (7 escenarios)\nprueba de interfaz en Chromium", fc=ROSE, ec="#C98A82", fs=10)
-flecha(ax, 5.5, 1.65, 6.1, 1.65, color="#C98A82")
+caja(ax, 5.4, 0.3, 14.4, 2.5, "Salida", "bloques con fecha, hora, materia y motivo · advertencias\nresumen semanal · indicadores · recomendaciones\nestadísticas de progreso · respuestas del asistente", fc=SAGE_L, ec="#7FA35E", fs=10)
+flecha(ax, 12.6, 4.3, 12.6, 2.8)
+caja(ax, 0.2, 0.3, 4.6, 2.5, "Verificación", "73 pruebas automáticas\nevaluación con casos y\nsimulación (300 escenarios)", fc=ROSE, ec="#C98A82", fs=9.5)
+flecha(ax, 4.8, 1.55, 5.4, 1.55, color="#C98A82")
 
 fig.savefig(os.path.join(aqui, "arquitectura.png"), bbox_inches="tight", facecolor="white")
 plt.close(fig)
@@ -90,9 +93,14 @@ flecha(ax, 16.7, 8.9, 16.7, 8.2)                   # 3 -> 4
 flecha(ax, 13.7, 6.45, 13.0, 6.45)                 # 4 -> 5
 flecha(ax, 7.0, 6.45, 6.3, 6.45)                   # 5 -> 6
 flecha(ax, 3.3, 4.7, 3.3, 4.0)                     # 6 -> 7
-ax.text(10.0, 12.75, "Cada vez que el estudiante marca una tarea como hecha o cambia un dato, se recalcula todo el plan (≈3 ms).",
+ax.text(10.0, 12.75, "Cada vez que el estudiante marca una tarea como hecha o cambia un dato, se recalcula todo el plan (≈3 ms por plan).",
         ha="center", fontsize=9, color=GREY)
 ax.text(7.0, 2.25, "Las pasadas 1 y 2 usan los mismos huecos:\nprimero se ubican las entregas y solo después\nel estudio independiente.", ha="left", va="center", fontsize=9, color=GREY, linespacing=1.5)
 fig.savefig(os.path.join(aqui, "algoritmo.png"), bbox_inches="tight", facecolor="white")
 plt.close(fig)
+import shutil
+destino = os.path.join(aqui, "..", "documento", "img")
+os.makedirs(destino, exist_ok=True)
+for n in ("arquitectura.png", "algoritmo.png"):
+    shutil.copy(os.path.join(aqui, n), os.path.join(destino, n))
 print("ok")

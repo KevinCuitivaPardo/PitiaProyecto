@@ -1,0 +1,59 @@
+\appendix
+
+\section{Estructura del repositorio y ejecución}\label{anexo:estructura}
+
+\textbf{Cómo ejecutar} (Python 3.10 o superior, sin instalar dependencias):
+
+\begin{verbatim}
+python servidor.py                                   # abre http://localhost:8000
+python demo.py                                       # plan en consola
+python -m unittest discover -s pruebas -v            # pruebas automaticas
+python pruebas/evaluacion.py --figuras               # evaluacion del Hito 3
+python documento/generar_tablas.py                   # tablas y cifras del documento
+python diseno/capturar.py                            # capturas de pantalla (Edge o Chrome)
+python diseno/generar_diagramas.py                   # diagramas (requiere matplotlib)
+\end{verbatim}
+
+\textbf{Estructura:}
+
+\begin{verbatim}
+motor/
+  semestria.py      planificador: creditos, huecos, entregas, EDF, advertencias
+  calibracion.py    factor aprendido de las horas reales
+  asesor.py         validacion de horarios y recomendaciones
+  asistente.py      chat: intenciones, 12 metodos de estudio, entrevista, modelo local
+  progreso.py       estadisticas de progreso y rachas
+servidor.py         servidor local (biblioteca estandar) y API JSON
+prototipo/          interfaz: index.html, app.js, asistente.js, estilos.css, asistente.css
+datos/              horario_ejemplo.json (horario real del equipo)
+pruebas/            test_motor.py, test_mvp.py, test_asistente.py, evaluacion.py
+resultados/         evaluacion.json y evaluacion.md (generados)
+documento/          este documento (LaTeX) y generar_tablas.py
+diseno/             diagramas, capturas y sus scripts
+archivo_hito2/      prototipo navegable del Hito 2 (con motor en JavaScript)
+\end{verbatim}
+
+\section{Formato del archivo de horario}
+
+El horario es un archivo JSON. Los campos obligatorios son \texttt{semestre\_inicio} y \texttt{bloques}; el resto se completa con valores por defecto al importarlo (la validación informa qué falta).
+
+\begin{verbatim}
+{
+  "semestre_inicio": "2026-08-24",
+  "materias": [ {"codigo": "ISIS ARSW", "creditos": 4} ],
+  "bloques": [
+    {"materia": "ISIS ARSW", "tipo": "LEC", "dia": 1,
+     "inicio": "11:30", "fin": "13:00", "salon": "C C1-203"}
+  ],
+  "labs": { "ISIS ARSW": {"frecuencia": "semanal", "semanas": null,
+                          "dias_entrega": 7, "dificultad": "Dificil"} },
+  "entregas_clase": {},
+  "disponibilidad": { "0": {"disponible": true, "inicio_trabajo": "08:00"} },
+  "trabajos": [ {"id": "m1", "materia": "ISIS ARSW", "tipo": "Parcial",
+                 "titulo": "Parcial 2", "entrega": "2026-10-20",
+                 "dificultad": "Medio", "horas": 6} ],
+  "hechas": [], "en_curso": [], "historial": []
+}
+\end{verbatim}
+
+Los días se numeran de 0 (lunes) a 6 (domingo); el tipo de bloque es \texttt{LEC} (clase teórica) o \texttt{LAB} (laboratorio); el campo \texttt{horas} de un trabajo es opcional. Los valores de dificultad válidos son «Fácil», «Medio» y «Difícil» (con tilde).

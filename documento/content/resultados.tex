@@ -1,0 +1,93 @@
+\section{Análisis de resultados}\label{sec:resultados}
+
+La evaluación se hizo con tres fuentes complementarias, todas reproducibles con \texttt{python pruebas/evaluacion.py} (semilla fija):
+
+\begin{enumerate}
+    \item \textbf{Casos de prueba} con el horario real del equipo, con entradas y salidas esperadas y obtenidas (sección~\ref{sec:mejores}).
+    \item \textbf{Simulación de \resEscenarios\ escenarios aleatorios} (de 4 a 7 materias, laboratorios, entregas y disponibilidades distintas), donde se verifican las restricciones del plan y se compara con una estrategia de referencia (sección~\ref{sec:significativo}).
+    \item \textbf{Usuarios simulados} para medir si la calibración mejora las estimaciones (sección~\ref{sec:calibracion}).
+\end{enumerate}
+
+Además, el sistema cuenta con \resPruebas\ pruebas automáticas (del motor, la validación, las recomendaciones, la calibración, el progreso, el asistente y la API) que pasan todas. Las del asistente comprueban que las respuestas sobre el horario salen de los datos del estudiante, que cada método citado tiene referencias, que la entrevista produce un plan personal y que el sistema funciona completo sin el modelo de lenguaje.
+
+\textbf{Alcance de la evaluación del asistente.} Las pruebas del asistente son funcionales y verifican su parte determinista. No se midió la calidad de las respuestas del modelo de lenguaje opcional (solo se revisaron casos a mano, con errores corregidos mediante la instrucción restringida) ni si los métodos recomendados mejoran el rendimiento de las personas; eso requiere una evaluación con usuarios.
+
+\subsection{Los dos mejores casos de prueba}\label{sec:mejores}
+
+\subsubsection{Caso CP1: semana base del equipo}
+
+Es el caso de referencia: el horario real del equipo y tres trabajos registrados (Parcial 2 de ECDI, entrega 1 de ARSW y Hito 2 de PTIA), consultado el lunes 12 de octubre de 2026 a las 9:00. El sistema generó \resBloquesBase\ bloques: \resHTareasBase\ horas en tareas y \resHEstudioBase\ horas de estudio independiente en el horizonte. La tabla~\ref{tab:cp1} compara lo esperado con lo obtenido y la figura~\ref{fig:carga} muestra la carga por día.
+
+\input{auto/tabla_cp1}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{img/fig_carga_dia.png}
+\caption{Horas de trabajo por día en el caso CP1; ningún día supera el tope de 6 horas}\label{fig:carga}
+\end{figure}
+
+El resultado cumple todo lo esperado. El máximo de 6 horas coincide con el tope configurado, lo que muestra que el límite actúa (varios días lo alcanzan) sin ser superado. El parcial difícil, con entrega el 20 de octubre, termina el 16, es decir, con más de los dos días de margen que le corresponden por su dificultad.
+
+\subsubsection{Caso CP3: marcar tareas como hechas}
+
+Muestra el recálculo del plan, una función central del MVP. Partiendo del caso base, el estudiante marca como hechos el parcial y el informe de laboratorio de ARSW.
+
+\input{auto/tabla_cp3}
+
+Las dos tareas desaparecen del plan y el tiempo que ocupaban se reasigna a estudio independiente, que es lo que se espera: avanzar en las metas de estudio de cada materia en lugar de dejar huecos sin uso. Ninguna otra tarea pierde su tiempo.
+
+\subsubsection{Otros casos}
+
+Tres casos más completan la evaluación. El caso CP2 (entrega imposible) comprueba el comportamiento ante una tarea que no cabe: el sistema la advierte, dice que faltan \resFaltanImposible\ horas, respeta el tope diario y no afecta a los demás trabajos. El caso CP4 comprueba que un día sin disponibilidad se respeta, y el caso CP5 que la calibración aumenta las estimaciones sin tocar las horas que el estudiante fijó (con 5 talleres registrados que tomaron 1,5 veces lo estimado, el factor aprendido es \resFactorTaller, cercano a 1,5 pero sin igualarlo, como se diseñó).
+
+\input{auto/tabla_cp2}
+\input{auto/tabla_cp4}
+\input{auto/tabla_cp5}
+
+\subsection{El caso más significativo: comparación con la estrategia de último momento}\label{sec:significativo}
+
+El caso más revelador no es una situación puntual sino la comparación del plan con lo que haría un estudiante sin planeación. Se simuló una estrategia de referencia de \emph{último momento}: cada trabajo se hace lo más tarde posible, hacia atrás desde su entrega, sin tope diario ni margen, usando los mismos huecos libres. Ambas estrategias se aplicaron a los mismos \resEscenarios\ escenarios aleatorios (\resTareas\ trabajos en total). Sobre el plan de SemestrIA se verificaron además nueve tipos de restricción dura.
+
+\textbf{Entradas.} Escenarios generados con semilla fija: de 4 a 7 materias, horarios con laboratorios semanales o quincenales, de 2 a 7 trabajos con entregas de 2 a 28 días y disponibilidad variable (incluidos sábados y domingos).
+
+\textbf{Salidas esperadas.} Cero violaciones de restricciones y cero fallas silenciosas; menos días sobrecargados y menos trabajos terminados el día de la entrega que la estrategia de último momento.
+
+\textbf{Salidas obtenidas.} Se obtuvieron \resViol\ violaciones en los \resEscenarios\ escenarios y la tabla~\ref{tab:comparacion} y la figura~\ref{fig:comparacion} comparan las estrategias.
+
+\input{auto/tabla_comparacion}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{img/fig_comparacion.png}
+\caption{SemestrIA frente a la estrategia de último momento en los escenarios simulados}\label{fig:comparacion}
+\end{figure}
+
+\textbf{Análisis.}
+\begin{itemize}
+    \item \textbf{La carga se reparte.} La estrategia de último momento produce en promedio \resDiasSobreUlt\ días por escenario con más de 6 horas de trabajo y un día pico de \resMaxUlt\ horas; el plan de SemestrIA no tiene ningún día sobrecargado y su día pico promedia \resMaxEdf\ horas. Esto refleja el efecto del tope diario y del límite por tarea.
+    \item \textbf{Hay margen.} Con la estrategia de último momento el \resColUlt\,\% de los trabajos se termina el mismo día de la entrega, frente al \resColEdf\,\% con SemestrIA (una reducción del \resRedCol\,\%); los trabajos se terminan en promedio \resAntEdf\ días antes de su fecha, frente a \resAntUlt\ días.
+    \item \textbf{Hay un costo.} La estrategia de último momento deja con tiempo completo al \resPctCubUlt\,\% de los trabajos y SemestrIA al \resPctCub\,\%. La diferencia es la consecuencia directa de los topes de bienestar: sin límite se logra algo más de cobertura a costa de jornadas de más de 8 horas. En \resConAdv\ de los \resEscenarios\ escenarios algún trabajo no cabe, y en todos esos casos el sistema lo advirtió (cero fallas silenciosas): el estudiante se entera con tiempo de que debe negociar un plazo o ajustar su disponibilidad.
+    \item \textbf{Rapidez.} Cada plan tarda en promedio \resMsMedia\ ms (percentil 95: \resMsPNov\ ms; máximo: \resMsMax\ ms), por lo que se recalcula al instante con cada cambio.
+\end{itemize}
+
+\textbf{Límites de la comparación.} La estrategia de último momento es un modelo del comportamiento de un estudiante, no una medición de personas reales, y los escenarios son sintéticos. Los resultados muestran que el plan cumple lo que se diseñó que cumpliera, pero no demuestran que los estudiantes rindan más con él; eso exige una evaluación con usuarios, que no se hizo (sección~\ref{sec:conclusiones}).
+
+\subsection{Calibración de las estimaciones}\label{sec:calibracion}
+
+Para medir si aprender de las horas reales mejora las estimaciones, se simularon \resUsuarios\ estudiantes por cada ritmo (0,6; 0,8; 1; 1,3; 1,6 y 2 veces la estimación base, con ruido aleatorio), cada uno con 12 trabajos. Se comparó el error absoluto medio entre la estimación y las horas reales en los trabajos 6 a 12, con la estimación base y con la calibrada con los registros anteriores.
+
+\input{auto/tabla_calibracion}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.75\textwidth]{img/fig_calibracion.png}
+\caption{Error de estimación con y sin calibración según el ritmo real del estudiante}\label{fig:calibracion}
+\end{figure}
+
+La calibración reduce el error en promedio un \resRedCalSes\,\% para los estudiantes cuyo ritmo difiere de la estimación base, y más cuanto mayor es la diferencia (hasta cerca de 70\,\% para quien trabaja más rápido de lo estimado). Hay un costo pequeño: para quien ya coincide con la estimación base (ritmo de 1) el error empeora un \resCalUnoAbs\,\%, porque el factor aprendido oscila alrededor de 1 por el ruido de las observaciones. La reducción media sobre todos los ritmos es del \resRedCalMedia\,\%. Estos resultados provienen de usuarios simulados y dependen del ruido supuesto.
+
+\subsection{Cumplimiento de los criterios de aceptación}
+
+La tabla~\ref{tab:objetivos} contrasta los criterios definidos en la sección~\ref{sec:alcance} con los resultados.
+
+\input{auto/tabla_objetivos}

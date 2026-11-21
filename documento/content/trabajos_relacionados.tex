@@ -1,0 +1,38 @@
+\section{Trabajos relacionados}\label{sec:trabajos}
+
+Para cada uno de los tres problemas se revisaron dos trabajos: qué lograron y con qué tecnología. La tabla~\ref{tab:relacionados} los resume.
+
+\subsection{Problema 1: planeación del tiempo de estudio}
+
+\textbf{PTIME \parencite{Berry2011}.} Es un asistente de calendario desarrollado en el proyecto CALO, que ayuda a agendar reuniones. Combina razonamiento sobre restricciones temporales con el aprendizaje de las preferencias del usuario y una interacción de iniciativa mixta (el sistema propone y la persona decide). Muestra que unir razonamiento basado en restricciones y aprendizaje es viable para un asistente personal. Está pensado para reuniones entre varias personas, no para repartir horas de estudio según créditos y entregas.
+
+\textbf{Reclaim.ai y Motion \parencite{Reclaim,Motion}.} Son servicios comerciales que ubican tareas en los huecos libres de un calendario según prioridad y fecha límite, y las reprograman cuando algo cambia. Demuestran que existe demanda por la planeación automática de tareas. No documentan públicamente su algoritmo ni lo evalúan, y no están diseñados para el contexto universitario: no parten de los créditos de una materia, no distinguen un laboratorio quincenal de uno semanal y no explican por qué una tarea quedó en cierto momento.
+
+\subsection{Problema 2: alerta temprana de riesgo académico}
+
+\textbf{Revisión de minería de datos educativa \parencite{Romero2020}.} Resume las técnicas (clasificación, agrupamiento, minería de reglas) con las que se predice el desempeño y se identifica a estudiantes en riesgo, y discute sus aplicaciones y límites. Aporta el panorama de métodos y datos necesarios.
+
+\textbf{Conjunto de datos de la Open University \parencite{Kuzilek2017}.} Publica datos abiertos y anonimizados de interacción, demografía y resultados de estudiantes de una universidad a distancia, usados para evaluar modelos de predicción temprana del abandono y la reprobación. Muestra que el problema exige datos históricos amplios, que no están al alcance de un proyecto de un semestre en nuestra institución.
+
+\subsection{Problema 3: orientación en la carga de materias}
+
+\textbf{Predicción de notas y recomendación de cursos \parencite{Elbadrawy2016}.} Propone modelos que predicen la nota que un estudiante obtendría en un curso futuro, teniendo en cuenta el dominio, y con ello recomiendan cursos. Requiere el historial de calificaciones de muchos estudiantes.
+
+\textbf{Recomendación de cursos con redes neuronales \parencite{Pardos2019}.} Estudia representaciones neuronales de los cursos para orientar la selección de materias y analiza la utilidad y la capacidad de examinar las recomendaciones, un punto crítico cuando se aconseja a una persona sobre su carrera.
+
+\begin{table}[H]
+\centering\small
+\caption{Resumen de trabajos relacionados}\label{tab:relacionados}
+\begin{tabularx}{\textwidth}{l >{\raggedright\arraybackslash}p{3.1cm} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X}
+\toprule
+Problema & Trabajo & Tecnología & Aporte y brecha \\
+\midrule
+1 & PTIME & Restricciones temporales y aprendizaje de preferencias & Asistente de calendario viable; pensado para reuniones, no para créditos ni entregas \\
+1 & Reclaim.ai, Motion & Planificación heurística (no documentada) & Ubican tareas por prioridad y plazo; sin créditos ni explicación detallada \\
+2 & Romero y Ventura & Clasificación y agrupamiento sobre datos educativos & Panorama de métodos; exige datos históricos \\
+2 & OULAD & Conjunto de datos abierto & Permite evaluar predicción temprana; datos de otra institución \\
+3 & Elbadrawy y Karypis & Predicción de notas y recomendación & Recomienda cursos; requiere historial de muchos estudiantes \\
+3 & Pardos y colaboradores & Representaciones neuronales de cursos & Examina utilidad e interpretabilidad de las recomendaciones \\
+\bottomrule
+\end{tabularx}
+\end{table}

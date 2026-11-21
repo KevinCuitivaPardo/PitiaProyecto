@@ -1,0 +1,33 @@
+\section{Conclusiones}\label{sec:conclusiones}
+
+\subsection{Dos aciertos y dos errores}
+
+\subsubsection*{Aciertos}
+
+\begin{enumerate}
+    \item \textbf{Diseñar el motor como un sistema determinista con restricciones verificables y explicaciones.} Las restricciones duras se escribieron desde el principio como condiciones que se pueden comprobar automáticamente, lo que permitió evaluar el plan con \resEscenarios\ escenarios y obtener \resViol\ violaciones, y cada bloque y cada recomendación dicen por qué existen. \emph{Aprendizaje:} formular las restricciones como invariantes comprobables permite probar con simulación en lugar de revisar planes a mano, y la explicación convierte al sistema en algo que el estudiante puede discutir y corregir.
+    \item \textbf{Calibrar con las horas reales mediante un método simple y estable.} El promedio geométrico encogido hacia 1 deja el plan sin cambios cuando no hay datos y reduce en promedio un \resRedCalSes\,\% el error cuando el ritmo del estudiante difiere de la estimación. \emph{Aprendizaje:} con pocos datos de una sola persona, un modelo sencillo y explicable aporta más que uno complejo, y es la parte de aprendizaje que vuelve personal al asistente.
+\end{enumerate}
+
+\subsubsection*{Errores}
+
+\begin{enumerate}
+    \item \textbf{Mantener dos implementaciones del motor.} En el Hito 2 el motor existía en Python y en JavaScript, y era necesaria una prueba de cruce para garantizar que daban el mismo plan; cada mejora (recomendaciones, calibración) había que duplicarla. En el Hito 3 se unificó en un solo motor en Python con un servidor local, a costa de que ya no se pueda abrir el prototipo con doble clic sin ejecutar el servidor. \emph{Aprendizaje:} una sola fuente de verdad desde el inicio, con la lógica donde pueda probarse mejor.
+    \item \textbf{Validar con un solo horario y con estimaciones sin datos.} Hasta el Hito 2 el motor solo se había verificado con el horario del equipo y las horas base por tipo de trabajo eran supuestos sin calibrar. Eso no permitía saber qué tan general era la solución ni qué tan buenas eran las estimaciones. Se corrigió con la simulación de escenarios y la calibración, pero el sistema todavía no se ha probado con otros estudiantes. \emph{Aprendizaje:} buscar desde el principio más de un caso real y datos reales, porque la generalidad no se puede deducir de un ejemplo.
+\end{enumerate}
+
+\subsection{Tres conclusiones}
+
+\begin{enumerate}
+    \item \textbf{Un planificador heurístico y explicable es suficiente para este problema.} El MVP cumple los ocho criterios de aceptación (tabla~\ref{tab:objetivos}): sin violaciones de restricciones, con el \resPctCub\,\% de los trabajos con su tiempo asegurado y con un tiempo de planificación promedio de \resMsMedia\ ms, lo que permite recalcular el plan en cada cambio.
+    \item \textbf{Planear cambia la distribución de la carga, con un costo conocido.} Frente a dejar todo para el último momento, desaparecen los días sobrecargados y los trabajos que se terminan el mismo día de la entrega pasan del \resColUlt\,\% al \resColEdf\,\%. A cambio, la cobertura baja de \resPctCubUlt\,\% a \resPctCub\,\% por los topes de bienestar; el sistema compensa avisando a tiempo cuando algo no cabe, sin fallas silenciosas.
+    \item \textbf{Aprender del propio estudiante mejora el plan, pero depende de que registre sus horas.} La calibración reduce el error de estimación a la mitad en promedio, aunque en los resultados simulados puede empeorar ligeramente a quien ya coincide con la estimación base.
+\end{enumerate}
+
+\textbf{Límites del componente conversacional.} El asistente entiende las preguntas por palabras clave, por lo que frases muy distintas a las previstas pasan al modelo de lenguaje opcional, que es pequeño, puede equivocarse y tarda decenas de segundos sin GPU; sus respuestas van marcadas y no sustituyen la verificación. Las referencias de los métodos de estudio deben comprobarse antes de citarlas.
+
+\textbf{Limitaciones.} Los resultados provienen de un horario real y de simulaciones; no hay evaluación con usuarios, las horas base y los márgenes por dificultad son supuestos, y el horario entra como archivo JSON o se arma en la interfaz (la lectura automática de una imagen quedó fuera del alcance).
+
+\subsection{Trabajo futuro}
+
+La idea más valiosa es un \textbf{piloto con estudiantes durante un semestre}: medir si cumplen más entregas a tiempo y cómo perciben su carga, y usar sus horas reales para calibrar las horas base por materia y no solo por tipo de trabajo. Siguen, en orden de dificultad, exportar el plan a un calendario (formato iCalendar), leer el horario desde una imagen o un PDF con un modelo de visión y permitir negociar el plan (por ejemplo, pedir el cambio mínimo cuando el estudiante mueve un bloque).

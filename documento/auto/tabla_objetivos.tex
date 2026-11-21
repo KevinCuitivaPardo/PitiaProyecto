@@ -1,0 +1,18 @@
+\begin{table}[H]
+\centering\small
+\caption{Cumplimiento de los criterios de aceptación del MVP}\label{tab:objetivos}
+\begin{tabularx}{\textwidth}{l >{\raggedright\arraybackslash}X r r c}
+\toprule
+ & Criterio & Umbral & Resultado & ¿Cumple? \\
+\midrule
+OC1 & Restricciones duras violadas en los escenarios simulados & 0 & 0 & Sí \\
+OC2 & Fallas silenciosas (trabajo sin tiempo completo y sin advertencia) & 0 & 0 & Sí \\
+OC3 & Tiempo de planificación, percentil 95 & $\leq$ 100 ms & 4,76 ms & Sí \\
+OC4 & Días con más de 6 h de trabajo (vs. último momento) & 0 & 0 & Sí \\
+OC5 & Reducción de trabajos terminados el día de la entrega & $\geq$ 50 \% & 94,3 \% & Sí \\
+OC6 & Trabajos con tiempo asegurado en escenarios aleatorios & $\geq$ 95 \% & 98,4 \% & Sí \\
+OC7 & Reducción del error de estimación (ritmo real distinto de la base en al menos 20 \%) & $\geq$ 25 \% & 32,1 \% a 69,0 \% & Sí \\
+OC8 & Pruebas automáticas que pasan & 100 \% & 73 de 73 & Sí \\
+\bottomrule
+\end{tabularx}
+\end{table}

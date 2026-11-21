@@ -1,0 +1,58 @@
+\subsection{Qué tipo de inteligencia artificial usa SemestrIA}\label{sec:tipo-ia}
+
+Esta sección responde de forma directa qué clase de IA se emplea, qué métodos concretos hay en cada parte del sistema y cuáles son sus características. La respuesta corta es que el núcleo es \textbf{inteligencia artificial simbólica} (conocimiento, reglas y búsqueda heurística) con un componente de \textbf{aprendizaje automático estadístico ligero} y \textbf{no usa redes neuronales}; la única pieza neuronal es un modelo de lenguaje preentrenado, \textbf{opcional} y confinado a redactar respuestas abiertas, que nunca decide el plan.
+
+\textbf{Tipo de agente.} Siguiendo la clasificación de \textcite{Russell2021}, SemestrIA es un \emph{agente basado en conocimiento y en objetivos} con un \emph{elemento de aprendizaje}: percibe el horario, los créditos, los trabajos y las horas registradas; razona con reglas y búsqueda para producir el plan que mejor cumple la meta (entregar a tiempo con una carga sostenible); y mejora sus estimaciones con la experiencia del propio estudiante.
+
+\begin{table}[H]
+\centering\small
+\caption{Técnicas de IA por componente}\label{tab:tecnicas-ia}
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.0cm} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}p{2.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.8cm}}
+\toprule
+Componente & Técnica & Familia & ¿Aprende? & ¿Determinista? \\
+\midrule
+Estimación de horas y metas & Reglas de conocimiento: créditos a horas, horas base por tipo, factor y margen por dificultad & Simbólica & No & Sí \\
+Planificador & Búsqueda heurística voraz (EDF) con restricciones duras y blandas, y topes de bienestar & Simbólica (planificación) & No & Sí \\
+Calibración & Estimación estadística con creencia previa: promedio geométrico encogido hacia 1 con $K=3$ & Aprendizaje automático estadístico (no neuronal) & Sí, con las horas del usuario & Sí \\
+Asesor & Sistema basado en reglas: condición sobre el plan $\rightarrow$ recomendación con acción & Simbólica & No & Sí \\
+Asistente: comprensión & Detección de intención por coincidencia de raíces de palabras (sin tildes), con puntaje y reglas de desempate & Procesamiento de lenguaje natural simbólico & No & Sí \\
+Asistente: diálogo & Entrevista guiada de cinco preguntas (máquina de estados) que construye un perfil & Simbólica & Construye un perfil, no entrena & Sí \\
+Asistente: respuesta & Recomendador basado en conocimiento (12 métodos con evidencia) y generación por plantillas con los datos del estudiante & Simbólica & No & Sí \\
+Progreso & Estadística descriptiva: sumas por semana, porcentajes y rachas & No es IA en sentido estricto & No & Sí \\
+Modelo de lenguaje local (opcional) & Modelo de lenguaje grande preentrenado (arquitectura \emph{transformer}), solo inferencia & Neuronal, generativa & No (no se entrena ni se ajusta) & No \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\textbf{¿Es una red neuronal?} No, en lo que decide. El plan, las estimaciones, las recomendaciones, las respuestas sobre el horario y los métodos de estudio los producen reglas y algoritmos que se pueden leer, probar y reproducir. No se entrenó ningún modelo propio, no hay aprendizaje profundo propio y no se usan datos de otros estudiantes. La excepción es la capa opcional: si el computador tiene instalado \textbf{Ollama} \parencite{Ollama} con un modelo como \textbf{Qwen2.5 de 3\,000 millones de parámetros} \parencite{Qwen2024}, una red neuronal de tipo \emph{transformer} \parencite{Vaswani2017} que ya viene entrenada, el asistente le entrega las preguntas abiertas que el motor no reconoce. El sistema solo la \emph{consulta} (inferencia); no la entrena ni la ajusta, y el modelo corre en el propio computador, sin enviar datos a la nube.
+
+\textbf{Cómo se acota el modelo de lenguaje.} Los modelos generativos pueden producir afirmaciones falsas con apariencia de certeza \parencite{Ji2023}; en una prueba temprana el modelo inventó títulos de libros, lo que motivó estas medidas:
+\begin{itemize}
+    \item \emph{Alcance restringido.} La instrucción del sistema limita el tema al horario, la organización del tiempo, los métodos de estudio y el bienestar académico, y prohíbe inventar fechas, notas, libros o estudios y citar fuentes concretas.
+    \item \emph{Datos fundamentados.} Se le entrega un resumen corto y fijo de los datos del estudiante (agenda de hoy y mañana, próximas entregas, materias y perfil) y se le pide usar solo ese contexto, idea cercana a fundamentar la generación en datos recuperados \parencite{Lewis2020}, aunque sin base vectorial.
+    \item \emph{Sin poder sobre el plan.} Las restricciones duras viven en el motor determinista; el modelo no puede mover un bloque ni cambiar una fecha.
+    \item \emph{Transparencia.} Toda respuesta del modelo se marca como «redactada por el modelo local» y se invita a verificarla; se puede apagar en Ajustes o con la variable \texttt{SEMESTRIA\_SIN\_LLM=1}.
+    \item \emph{Degradación elegante.} Sin Ollama, o si el modelo no responde a tiempo, el sistema sigue funcionando completo con el motor.
+\end{itemize}
+
+\begin{table}[H]
+\centering\small
+\caption{Características del sistema de IA}\label{tab:caract-ia}
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.3cm} >{\raggedright\arraybackslash}X}
+\toprule
+Característica & En SemestrIA \\
+\midrule
+Determinismo & El motor devuelve el mismo plan y las mismas respuestas para los mismos datos. Solo la capa opcional del modelo de lenguaje varía (temperatura 0,3) \\
+Explicabilidad & Cada bloque, recomendación y factor de calibración trae su motivo; las respuestas sobre métodos citan la evidencia en la que se basan \\
+Verificabilidad & Las restricciones duras se comprueban automáticamente (\resPruebas\ pruebas y \resEscenarios\ escenarios simulados); lo generado por el modelo de lenguaje no es verificable de ese modo \\
+Datos necesarios & Ninguno externo: solo los del estudiante. La calibración funciona con pocos registros porque está anclada en 1 \\
+Entrenamiento & No hay. El único aprendizaje es la calibración, que se recalcula en milisegundos con cada registro \\
+Privacidad & Todo corre en el computador del estudiante; la capa neuronal opcional también es local \\
+Costo y velocidad & Sin servicios de pago. Un plan tarda unos \resMsMedia\ ms; las respuestas del motor son inmediatas y las del modelo local tardan decenas de segundos en un computador sin GPU \\
+Robustez & Si falta el modelo de lenguaje, nada deja de funcionar; si falta el historial, el factor de calibración es 1 \\
+Límites & No garantiza el óptimo, no mide al usuario real, el reconocimiento de intenciones se basa en palabras clave y no entiende frases muy distintas a las previstas, y las horas base son supuestos \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\textbf{Por qué esta combinación.} El problema tiene restricciones duras (choques de horario, topes de carga) que un sistema que fabrica texto no puede garantizar, y no existen datos con los cuales entrenar un modelo propio (tabla~\ref{tab:alternativas}). Por eso la decisión la toma un método simbólico verificable y el aprendizaje se limita a lo que sí se puede aprender con pocos datos. El modelo de lenguaje se admite solo donde su flexibilidad aporta (conversar sobre preguntas libres) y donde un error es de bajo riesgo, y siempre advertido.
