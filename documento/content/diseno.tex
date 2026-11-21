@@ -86,7 +86,7 @@ Asistente (\texttt{motor/asistente.py}) & Detección de intenciones, respuestas 
 Progreso (\texttt{motor/progreso.py}) & Horas cumplidas, planeadas y necesarias por semana, tareas terminadas y rachas \\
 Servidor (\texttt{servidor.py}) & Sirve la interfaz y expone \texttt{GET /api/ejemplo}, \texttt{POST /api/importar} (valida y normaliza un horario) y \texttt{POST /api/plan} (devuelve plan, recomendaciones, indicadores, calibración y progreso), además de \texttt{POST /api/chat}, \texttt{POST /api/chat\_llm} y \texttt{GET /api/asistente\_estado} para el asistente \\
 Interfaz (\texttt{prototipo/}) & Asistente de cuatro pasos y panel con resumen, calendario, tablero de trabajos, progreso, asistente personal y ajustes \\
-Datos (\texttt{datos/}) & Horario real del equipo usado como ejemplo \\
+Datos (\texttt{datos/}) & Horario real del estudiante usado como ejemplo \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -177,8 +177,8 @@ La interfaz evolucionó desde el prototipo en papel del Hito 1 y el prototipo na
 \subsection{Fuentes del diseño y del código}
 
 \begin{itemize}
-    \item \textbf{Código:} escrito por el equipo; usa solo la biblioteca estándar de Python y JavaScript del navegador, sin bibliotecas de terceros. Se reparte en el motor (\texttt{motor/}), el servidor (\texttt{servidor.py}), la interfaz (\texttt{prototipo/}) y las pruebas (\texttt{pruebas/}); el anexo~\ref{anexo:estructura} muestra la estructura y cómo ejecutarlo.
-    \item \textbf{Datos:} \texttt{datos/horario\_ejemplo.json} es el horario real del equipo; los créditos de algunas materias son supuestos.
+    \item \textbf{Código:} escrito por el estudiante; usa solo la biblioteca estándar de Python y JavaScript del navegador, sin bibliotecas de terceros. Se reparte en el motor (\texttt{motor/}), el servidor (\texttt{servidor.py}), la interfaz (\texttt{prototipo/}) y las pruebas (\texttt{pruebas/}); el anexo~\ref{anexo:estructura} muestra la estructura y cómo ejecutarlo.
+    \item \textbf{Datos:} \texttt{datos/horario\_ejemplo.json} es el horario real del estudiante; los créditos de algunas materias son supuestos.
     \item \textbf{Fuentes del diseño:} la equivalencia entre créditos y horas viene de la norma colombiana \parencite{MEN2019}; el orden por fecha límite, de la teoría de planificación \parencite{Liu1973,Russell2021}; la distinción entre restricciones duras y blandas, de la literatura de horarios \parencite{Schaerf1999}. Las horas base por tipo de trabajo y los márgenes por dificultad son \textbf{supuestos propios}, sin calibrar con datos externos; para eso existe el módulo de calibración.
     \item \textbf{Fuentes del asistente:} los métodos de estudio y bienestar proceden de la literatura citada en la tabla~\ref{tab:metodos}; las reglas que los eligen según el perfil son propias. La capa opcional usa un modelo de terceros preentrenado (Qwen2.5 mediante Ollama) sin modificarlo.
     \item \textbf{Historial:} el prototipo navegable del Hito 2 (con una réplica del motor en JavaScript) se conserva en la carpeta \texttt{archivo\_hito2/}.

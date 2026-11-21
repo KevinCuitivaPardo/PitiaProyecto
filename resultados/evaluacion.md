@@ -4,9 +4,9 @@ Generado por `pruebas/evaluacion.py` (semilla 2026).
 
 ## A. Casos de prueba
 
-### CP1. Semana base del equipo
+### CP1. Semana base del estudiante
 
-**Entrada:** Horario real del equipo (6 materias, 14 bloques), 3 trabajos registrados, lunes 12/10/2026 09:00 (semana 8, par).
+**Entrada:** Horario real del estudiante (6 materias, 14 bloques), 3 trabajos registrados, lunes 12/10/2026 09:00 (semana 8, par).
 
 | Comprobación | Esperado | Obtenido | |
 |---|---|---|---|
@@ -64,7 +64,7 @@ Generado por `pruebas/evaluacion.py` (semilla 2026).
 - Escenarios aleatorios: 300; trabajos planificados: 3162.
 - Violaciones de restricciones duras: **0** 
 - Trabajos con tiempo asegurado: 98.4 % (257 de 300 escenarios completos; 43 con advertencia).
-- Tiempo por plan: media 3.34 ms, p95 4.76 ms, máximo 6.63 ms.
+- Tiempo por plan: media 2.73 ms, p95 3.89 ms, máximo 4.9 ms.
 
 | Métrica | Último momento | SemestrIA |
 |---|---|---|

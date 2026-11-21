@@ -4,7 +4,7 @@ Uso:  python pruebas/evaluacion.py            -> resultados/evaluacion.json, res
       python pruebas/evaluacion.py --figuras  -> además, documento/img/fig_*.png (requiere matplotlib)
 
 Tres bloques:
-  A. Casos de prueba con entradas y salidas esperadas vs. obtenidas (datos reales del equipo).
+  A. Casos de prueba con entradas y salidas esperadas vs. obtenidas (datos reales del estudiante).
   B. Simulación de N escenarios aleatorios: (1) verificación de restricciones duras del plan y
      (2) comparación contra una estrategia de "último momento" sin topes ni colchón.
   C. Calibración: usuarios simulados con distinto ritmo real; error de estimación con y sin aprendizaje.
@@ -263,8 +263,8 @@ def caso_semana_base():
     v = violaciones(datos, plan, AHORA)
     ult_parcial = max(b["fecha"] for b in parcial)
     return {
-        "id": "CP1", "nombre": "Semana base del equipo",
-        "entrada": "Horario real del equipo (6 materias, 14 bloques), 3 trabajos registrados, lunes 12/10/2026 09:00 (semana 8, par).",
+        "id": "CP1", "nombre": "Semana base del estudiante",
+        "entrada": "Horario real del estudiante (6 materias, 14 bloques), 3 trabajos registrados, lunes 12/10/2026 09:00 (semana 8, par).",
         "chequeos": [
             ("Tareas con tiempo asegurado", f"{len(plan['tareas'])} de {len(plan['tareas'])}", f"{cub} de {len(plan['tareas'])}", cub == len(plan["tareas"])),
             ("Violaciones de restricciones duras", "0", str(sum(v.values())), sum(v.values()) == 0),

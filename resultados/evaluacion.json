@@ -2,8 +2,8 @@
  "casos": [
   {
    "id": "CP1",
-   "nombre": "Semana base del equipo",
-   "entrada": "Horario real del equipo (6 materias, 14 bloques), 3 trabajos registrados, lunes 12/10/2026 09:00 (semana 8, par).",
+   "nombre": "Semana base del estudiante",
+   "entrada": "Horario real del estudiante (6 materias, 14 bloques), 3 trabajos registrados, lunes 12/10/2026 09:00 (semana 8, par).",
    "chequeos": [
     [
      "Tareas con tiempo asegurado",
@@ -211,9 +211,9 @@
   "pct_tareas_cubiertas": 98.4,
   "escenarios_completos": 257,
   "escenarios_con_advertencia": 43,
-  "ms_por_plan_media": 3.34,
-  "ms_por_plan_p95": 4.76,
-  "ms_por_plan_max": 6.63,
+  "ms_por_plan_media": 2.73,
+  "ms_por_plan_p95": 3.89,
+  "ms_por_plan_max": 4.9,
   "edf": {
    "dias_sobrecargados_total": 0,
    "dias_sobrecargados_por_escenario": 0.0,

@@ -3,7 +3,7 @@
 La evaluación se hizo con tres fuentes complementarias, todas reproducibles con \texttt{python pruebas/evaluacion.py} (semilla fija):
 
 \begin{enumerate}
-    \item \textbf{Casos de prueba} con el horario real del equipo, con entradas y salidas esperadas y obtenidas (sección~\ref{sec:mejores}).
+    \item \textbf{Casos de prueba} con el horario real del estudiante, con entradas y salidas esperadas y obtenidas (sección~\ref{sec:mejores}).
     \item \textbf{Simulación de \resEscenarios\ escenarios aleatorios} (de 4 a 7 materias, laboratorios, entregas y disponibilidades distintas), donde se verifican las restricciones del plan y se compara con una estrategia de referencia (sección~\ref{sec:significativo}).
     \item \textbf{Usuarios simulados} para medir si la calibración mejora las estimaciones (sección~\ref{sec:calibracion}).
 \end{enumerate}
@@ -14,9 +14,9 @@ Además, el sistema cuenta con \resPruebas\ pruebas automáticas (del motor, la 
 
 \subsection{Los dos mejores casos de prueba}\label{sec:mejores}
 
-\subsubsection{Caso CP1: semana base del equipo}
+\subsubsection{Caso CP1: semana base del estudiante}
 
-Es el caso de referencia: el horario real del equipo y tres trabajos registrados (Parcial 2 de ECDI, entrega 1 de ARSW y Hito 2 de PTIA), consultado el lunes 12 de octubre de 2026 a las 9:00. El sistema generó \resBloquesBase\ bloques: \resHTareasBase\ horas en tareas y \resHEstudioBase\ horas de estudio independiente en el horizonte. La tabla~\ref{tab:cp1} compara lo esperado con lo obtenido y la figura~\ref{fig:carga} muestra la carga por día.
+Es el caso de referencia: el horario real del estudiante y tres trabajos registrados (Parcial 2 de ECDI, entrega 1 de ARSW y Hito 2 de PTIA), consultado el lunes 12 de octubre de 2026 a las 9:00. El sistema generó \resBloquesBase\ bloques: \resHTareasBase\ horas en tareas y \resHEstudioBase\ horas de estudio independiente en el horizonte. La tabla~\ref{tab:cp1} compara lo esperado con lo obtenido y la figura~\ref{fig:carga} muestra la carga por día.
 
 \input{auto/tabla_cp1}
 
