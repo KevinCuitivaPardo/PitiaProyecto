@@ -21,7 +21,7 @@
 \RequirePackage{xspace}                     % Agregar espacios automáticamente después de las palabras comandos
 \RequirePackage{lscape}
 \RequirePackage{dirtytalk}                  % Poner cosas entre comillas fácilmente: \say{algo que va entre comillas}
-\RequirePackage{ulem}                       % Tachar texto
+\RequirePackage[normalem]{ulem}                       % Tachar texto
 \RequirePackage{bold-extra}                 % Monoespaciado con negrilla
 \RequirePackage{textcomp}                   % Símbolos: $, copyright, ...
 \RequirePackage{inputenc}                   % carácteres acentuados.
@@ -57,7 +57,7 @@
 \RequirePackage{ifthen}                     % Hacer if dentro de latex
 \RequirePackage[shortlabels]{enumitem}      % Permite personalizar enumerate, itemize y description
 \RequirePackage{dirtree}                    % Generar el árbol de directorios
-\RequirePackage[colorlinks=true, linkcolor=black, urlcolor=blue]{hyperref}        % Permite remover el color y borde de los links
+\RequirePackage[colorlinks=true, linkcolor=black, citecolor=black, urlcolor=blue]{hyperref}        % Permite remover el color y borde de los links
 % \RequirePackage[colorlinks = true,allcolors = black,urlcolor=blue]{hyperref}  % Vínculos 
 %https://tex.stackexchange.com/questions/26071/how-can-i-have-colored-and-underlined-links-with-hyperref
 \RequirePackage{multicol}                   % Permite utilizar multi-columnas

@@ -42,7 +42,7 @@ lo que se hizo en esta entrega.
 | Prototipo funcional MVP | Hecho (ver abajo) |
 | Fuentes finales del diseño y del código | Hecho: repositorio, anexo del documento y `README.md` |
 | Video (máx. 10 min) con resultados y demo | **Pendiente**: lo graba el autor |
-| Compilar el PDF | **Pendiente**: no había LaTeX en esta máquina; compilar en Overleaf con XeLaTeX + biber (ver `documento/README.md`) |
+| Compilar el PDF | Hecho: `documento/SemestrIA_Hito3.pdf` (XeLaTeX + biber), revisado página por página |
 
 ### Qué se agregó al MVP
 

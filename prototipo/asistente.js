@@ -97,7 +97,7 @@ async function chatEnviar({ texto, accion, etiqueta }) {
     }
   } catch (e) {
     console.error("asistente:", e);
-    Object.assign(m, { bloques: [{ t: "p", txt: "No pude responder en este momento. Intenta de nuevo." + (DEMO ? " [" + e + "]" : "") }], sugerencias: [], cargando: false });
+    Object.assign(m, { bloques: [{ t: "p", txt: "No pude responder en este momento. Intenta de nuevo." }], sugerencias: [], cargando: false });
   }
   S.chat = S.chat.slice(-60);
   CHAT_OCUPADO = false;

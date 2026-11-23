@@ -2,12 +2,23 @@
 
 Esta sección responde de forma directa qué clase de IA se emplea, qué métodos concretos hay en cada parte del sistema y cuáles son sus características. La respuesta corta es que el núcleo es \textbf{inteligencia artificial simbólica} (conocimiento, reglas y búsqueda heurística) con un componente de \textbf{aprendizaje automático estadístico ligero} y \textbf{no usa redes neuronales}; la única pieza neuronal es un modelo de lenguaje preentrenado, \textbf{opcional} y confinado a redactar respuestas abiertas, que nunca decide el plan.
 
-\textbf{Tipo de agente.} Siguiendo la clasificación de \textcite{Russell2021}, SemestrIA es un \emph{agente basado en conocimiento y en objetivos} con un \emph{elemento de aprendizaje}: percibe el horario, los créditos, los trabajos y las horas registradas; razona con reglas y búsqueda para producir el plan que mejor cumple la meta (entregar a tiempo con una carga sostenible); y mejora sus estimaciones con la experiencia del propio estudiante.
+\textbf{Tipo de agente.} Siguiendo la clasificación de \textcite{Russell2021}, SemestrIA es un \emph{agente basado en conocimiento y en objetivos} con un \emph{elemento de aprendizaje} (tabla~\ref{tab:tecnicas-ia}): percibe el horario, los créditos, los trabajos y las horas registradas; razona con reglas y búsqueda para producir el plan que mejor cumple la meta (entregar a tiempo con una carga sostenible); y mejora sus estimaciones con la experiencia del propio estudiante.
+
+\textbf{¿Es una red neuronal?} No, en lo que decide. El plan, las estimaciones, las recomendaciones, las respuestas sobre el horario y los métodos de estudio los producen reglas y algoritmos que se pueden leer, probar y reproducir. No se entrenó ningún modelo propio, no hay aprendizaje profundo propio y no se usan datos de otros estudiantes. La excepción es la capa opcional: si el computador tiene instalado \textbf{Ollama} \parencite{Ollama} con un modelo como \textbf{Qwen2.5 de 3\,000 millones de parámetros} \parencite{Qwen2024}, una red neuronal de tipo \emph{transformer} \parencite{Vaswani2017} que ya viene entrenada, el asistente le entrega las preguntas abiertas que el motor no reconoce. El sistema solo la \emph{consulta} (inferencia); no la entrena ni la ajusta, y por defecto el modelo corre en el propio computador, sin enviar datos a la nube. Existe además una opción, desactivada por defecto, para usar un proveedor en la nube mediante su biblioteca de Python (variables de entorno \texttt{SEMESTRIA\_PROVEEDOR=nube} y \texttt{SEMESTRIA\_API\_KEY}); responde mejor y más rápido, pero el resumen acotado de la agenda y la pregunta salen del computador, y la interfaz lo avisa. La versión de 3\,000 millones de parámetros se distribuye bajo la licencia de Qwen, que restringe el uso comercial; para un proyecto académico no es un obstáculo, pero habría que revisarla si el sistema se comercializara.
+
+\textbf{Cómo se acota el modelo de lenguaje.} Los modelos generativos pueden producir afirmaciones falsas con apariencia de certeza \parencite{Ji2023}; en una prueba temprana el modelo inventó títulos de libros, lo que motivó estas medidas:
+\begin{itemize}
+    \item \emph{Alcance restringido.} La instrucción del sistema limita el tema al horario, la organización del tiempo, los métodos de estudio y el bienestar académico, y prohíbe inventar fechas, notas, libros o estudios y citar fuentes concretas.
+    \item \emph{Datos fundamentados.} Se le entrega un resumen corto y fijo de los datos del estudiante (agenda de hoy y mañana, próximas entregas, materias y perfil) y se le pide usar solo ese contexto, idea cercana a fundamentar la generación en datos recuperados \parencite{Lewis2020}, aunque sin base vectorial.
+    \item \emph{Sin poder sobre el plan.} Las restricciones duras viven en el motor determinista; el modelo no puede mover un bloque ni cambiar una fecha.
+    \item \emph{Transparencia.} Toda respuesta del modelo se marca como «redactada por el modelo local» (o «por un modelo en la nube») y se invita a verificarla; se puede apagar en Ajustes o con la variable \texttt{SEMESTRIA\_SIN\_LLM=1}.
+    \item \emph{Degradación elegante.} Sin Ollama, o si el modelo no responde a tiempo, el sistema sigue funcionando completo con el motor.
+\end{itemize}
 
 \begin{table}[H]
 \centering\small
 \caption{Técnicas de IA por componente}\label{tab:tecnicas-ia}
-\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.0cm} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}p{2.5cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.8cm}}
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{2.7cm} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}p{2.4cm} >{\centering\arraybackslash}p{1.6cm} >{\centering\arraybackslash}p{2.1cm}}
 \toprule
 Componente & Técnica & Familia & ¿Aprende? & ¿Determinista? \\
 \midrule
@@ -23,17 +34,6 @@ Modelo de lenguaje (opcional, local o en la nube) & Modelo de lenguaje grande pr
 \bottomrule
 \end{tabularx}
 \end{table}
-
-\textbf{¿Es una red neuronal?} No, en lo que decide. El plan, las estimaciones, las recomendaciones, las respuestas sobre el horario y los métodos de estudio los producen reglas y algoritmos que se pueden leer, probar y reproducir. No se entrenó ningún modelo propio, no hay aprendizaje profundo propio y no se usan datos de otros estudiantes. La excepción es la capa opcional: si el computador tiene instalado \textbf{Ollama} \parencite{Ollama} con un modelo como \textbf{Qwen2.5 de 3\,000 millones de parámetros} \parencite{Qwen2024}, una red neuronal de tipo \emph{transformer} \parencite{Vaswani2017} que ya viene entrenada, el asistente le entrega las preguntas abiertas que el motor no reconoce. El sistema solo la \emph{consulta} (inferencia); no la entrena ni la ajusta, y por defecto el modelo corre en el propio computador, sin enviar datos a la nube. Existe además una opción, desactivada por defecto, para usar un proveedor en la nube mediante su biblioteca de Python (variables de entorno \texttt{SEMESTRIA\_PROVEEDOR=nube} y \texttt{SEMESTRIA\_API\_KEY}); responde mejor y más rápido, pero el resumen acotado de la agenda y la pregunta salen del computador, y la interfaz lo avisa. La versión de 3\,000 millones de parámetros se distribuye bajo la licencia de Qwen, que restringe el uso comercial; para un proyecto académico no es un obstáculo, pero habría que revisarla si el sistema se comercializara.
-
-\textbf{Cómo se acota el modelo de lenguaje.} Los modelos generativos pueden producir afirmaciones falsas con apariencia de certeza \parencite{Ji2023}; en una prueba temprana el modelo inventó títulos de libros, lo que motivó estas medidas:
-\begin{itemize}
-    \item \emph{Alcance restringido.} La instrucción del sistema limita el tema al horario, la organización del tiempo, los métodos de estudio y el bienestar académico, y prohíbe inventar fechas, notas, libros o estudios y citar fuentes concretas.
-    \item \emph{Datos fundamentados.} Se le entrega un resumen corto y fijo de los datos del estudiante (agenda de hoy y mañana, próximas entregas, materias y perfil) y se le pide usar solo ese contexto, idea cercana a fundamentar la generación en datos recuperados \parencite{Lewis2020}, aunque sin base vectorial.
-    \item \emph{Sin poder sobre el plan.} Las restricciones duras viven en el motor determinista; el modelo no puede mover un bloque ni cambiar una fecha.
-    \item \emph{Transparencia.} Toda respuesta del modelo se marca como «redactada por el modelo local» (o «por un modelo en la nube») y se invita a verificarla; se puede apagar en Ajustes o con la variable \texttt{SEMESTRIA\_SIN\_LLM=1}.
-    \item \emph{Degradación elegante.} Sin Ollama, o si el modelo no responde a tiempo, el sistema sigue funcionando completo con el motor.
-\end{itemize}
 
 \begin{table}[H]
 \centering\small

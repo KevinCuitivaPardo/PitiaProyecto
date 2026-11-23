@@ -50,7 +50,8 @@ def main():
         sk.bind(("127.0.0.1", 0))
         puerto = sk.getsockname()[1]
     # el servidor corre en un proceso aparte: así las capturas con chat no dependen de este proceso
-    srv = subprocess.Popen([sys.executable, os.path.join(RAIZ, "servidor.py"), str(puerto)], cwd=RAIZ, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    srv = subprocess.Popen([sys.executable, os.path.join(RAIZ, "servidor.py"), str(puerto)], cwd=RAIZ, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                           env={**os.environ, "SEMESTRIA_SIN_LLM": "1"})   # capturas deterministas: sin modelo de lenguaje
     base = f"http://127.0.0.1:{puerto}/"
     for _ in range(50):
         try:
