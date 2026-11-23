@@ -200,6 +200,52 @@
    "datos_extra": {
     "factor_taller": 1.417
    }
+  },
+  {
+   "id": "CP6",
+   "nombre": "El asistente responde con los datos del estudiante",
+   "entrada": "Caso base, sin modelo de lenguaje: preguntas «¿Qué tengo hoy?», «¿cuándo es mi parcial?», «¿cómo estudio para el parcial de ECDI?», una pregunta fuera de tema y la entrevista de cinco preguntas.",
+   "chequeos": [
+    [
+     "«¿Qué tengo hoy?» muestra la clase y el bloque reales del lunes 12/10",
+     "09:00–11:00 y Taller MATE ECDI",
+     "ambos presentes",
+     true
+    ],
+    [
+     "«¿Cuándo es mi parcial?» pone primero el parcial con su fecha",
+     "Parcial 2 de ECDI, 20/10",
+     "Parcial 2 de ECDI, 20/10",
+     true
+    ],
+    [
+     "El plan de repasos termina en la fecha de la entrega",
+     "martes 20/10",
+     "martes 20/10",
+     true
+    ],
+    [
+     "Una pregunta fuera de tema no se inventa",
+     "«No tengo una respuesta segura»",
+     "sin respuesta inventada",
+     true
+    ],
+    [
+     "La entrevista arma el plan personal y pone primero el sueño (duerme menos de 6 h)",
+     "Dormir como parte del estudio",
+     "primero",
+     true
+    ],
+    [
+     "Cada recomendación se puede explicar en el chat",
+     "11 de 11",
+     "11 de 11",
+     true
+    ]
+   ],
+   "datos_extra": {
+    "recomendaciones": 11
+   }
   }
  ],
  "simulacion": {
@@ -211,9 +257,9 @@
   "pct_tareas_cubiertas": 98.4,
   "escenarios_completos": 257,
   "escenarios_con_advertencia": 43,
-  "ms_por_plan_media": 2.73,
-  "ms_por_plan_p95": 3.89,
-  "ms_por_plan_max": 4.9,
+  "ms_por_plan_media": 3.5,
+  "ms_por_plan_p95": 5.08,
+  "ms_por_plan_max": 8.02,
   "edf": {
    "dias_sobrecargados_total": 0,
    "dias_sobrecargados_por_escenario": 0.0,

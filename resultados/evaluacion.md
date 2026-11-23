@@ -59,12 +59,25 @@ Generado por `pruebas/evaluacion.py` (semilla 2026).
 | Aumentan los minutos asignados a talleres | > 630 min | 990 min | OK |
 | Los trabajos con horas fijadas por el estudiante no cambian | 480 min (PTIA) | 480 min | OK |
 
+### CP6. El asistente responde con los datos del estudiante
+
+**Entrada:** Caso base, sin modelo de lenguaje: preguntas «¿Qué tengo hoy?», «¿cuándo es mi parcial?», «¿cómo estudio para el parcial de ECDI?», una pregunta fuera de tema y la entrevista de cinco preguntas.
+
+| Comprobación | Esperado | Obtenido | |
+|---|---|---|---|
+| «¿Qué tengo hoy?» muestra la clase y el bloque reales del lunes 12/10 | 09:00–11:00 y Taller MATE ECDI | ambos presentes | OK |
+| «¿Cuándo es mi parcial?» pone primero el parcial con su fecha | Parcial 2 de ECDI, 20/10 | Parcial 2 de ECDI, 20/10 | OK |
+| El plan de repasos termina en la fecha de la entrega | martes 20/10 | martes 20/10 | OK |
+| Una pregunta fuera de tema no se inventa | «No tengo una respuesta segura» | sin respuesta inventada | OK |
+| La entrevista arma el plan personal y pone primero el sueño (duerme menos de 6 h) | Dormir como parte del estudio | primero | OK |
+| Cada recomendación se puede explicar en el chat | 11 de 11 | 11 de 11 | OK |
+
 ## B. Simulación
 
 - Escenarios aleatorios: 300; trabajos planificados: 3162.
 - Violaciones de restricciones duras: **0** 
 - Trabajos con tiempo asegurado: 98.4 % (257 de 300 escenarios completos; 43 con advertencia).
-- Tiempo por plan: media 2.73 ms, p95 3.89 ms, máximo 4.9 ms.
+- Tiempo por plan: media 3.5 ms, p95 5.08 ms, máximo 8.02 ms.
 
 | Métrica | Último momento | SemestrIA |
 |---|---|---|

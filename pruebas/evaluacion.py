@@ -364,6 +364,57 @@ def caso_calibracion():
     }
 
 
+def _texto_respuesta(r):
+    out = []
+    for b in r["bloques"]:
+        if "txt" in b:
+            out.append(b["txt"])
+        for it in b.get("items", []):
+            out.append(" ".join(it) if isinstance(it, list) else str(it))
+    return "\n".join(out)
+
+
+def caso_asistente():
+    """CP6: el asistente responde con los datos del estudiante, sin modelo de lenguaje y sin inventar."""
+    os.environ["SEMESTRIA_SIN_LLM"] = "1"
+    from motor.asesor import consejos
+    from motor.asistente import PREGUNTAS, Ctx, expandir_consejo, responder, tecnicas_para
+    datos = copy.deepcopy(BASE)
+    plan = planificar(datos, AHORA)
+
+    def ask(msg="", accion=None, d=None):
+        return responder(d or datos, plan, AHORA, msg, accion, llm_activo=False)
+
+    hoy = _texto_respuesta(ask("¿Qué tengo hoy?"))
+    parcial = ask("¿cuándo es mi parcial?")
+    primera = parcial["bloques"][1]["items"][0][0]
+    prep = ask("¿cómo estudio para el parcial de ECDI?")
+    linea = next(b for b in prep["bloques"] if b["t"] == "fechas")["items"]
+    fuera = ask("¿quién ganó el mundial?")
+    respuestas = {"momento": "manana", "estilo": "releer", "distraccion": "celular", "sueno": "menos6", "reto": "empezar"}
+    perfil, r = {}, ask(accion={"tipo": "entrevista_iniciar"})
+    for campo, _, _ in PREGUNTAS:
+        r = ask(accion={"tipo": "perfil", "campo": campo, "valor": respuestas[campo]}, d={**datos, "perfil": perfil})
+        perfil = r["perfil"]
+    t_plan = _texto_respuesta(r)
+    c = Ctx(datos, plan, AHORA)
+    lista = consejos(datos, plan, AHORA)
+    expandidas = [expandir_consejo(cj, c) for cj in lista]
+    return {
+        "id": "CP6", "nombre": "El asistente responde con los datos del estudiante",
+        "entrada": "Caso base, sin modelo de lenguaje: preguntas «¿Qué tengo hoy?», «¿cuándo es mi parcial?», «¿cómo estudio para el parcial de ECDI?», una pregunta fuera de tema y la entrevista de cinco preguntas.",
+        "chequeos": [
+            ("«¿Qué tengo hoy?» muestra la clase y el bloque reales del lunes 12/10", "09:00–11:00 y Taller MATE ECDI", "ambos presentes" if "09:00–11:00" in hoy and "Taller MATE ECDI" in hoy else "faltan", "09:00–11:00" in hoy and "Taller MATE ECDI" in hoy),
+            ("«¿Cuándo es mi parcial?» pone primero el parcial con su fecha", "Parcial 2 de ECDI, 20/10", f"{primera}, {'20/10' if '20/10' in _texto_respuesta(parcial) else 'sin fecha'}", primera == "Parcial 2 de ECDI" and "20/10" in _texto_respuesta(parcial)),
+            ("El plan de repasos termina en la fecha de la entrega", "martes 20/10", linea[-1][1], linea[-1][1] == "martes 20/10"),
+            ("Una pregunta fuera de tema no se inventa", "«No tengo una respuesta segura»", "sin respuesta inventada" if "No tengo una respuesta segura" in _texto_respuesta(fuera) and "llm_pendiente" not in fuera else "respondió", "No tengo una respuesta segura" in _texto_respuesta(fuera) and "llm_pendiente" not in fuera),
+            ("La entrevista arma el plan personal y pone primero el sueño (duerme menos de 6 h)", "Dormir como parte del estudio", "primero" if tecnicas_para(perfil)[0][0] == "sueno" else "no es el primero", r.get("perfil_completo") is True and "Tu plan de estudio personal" in t_plan and tecnicas_para(perfil)[0][0] == "sueno" and "Dormir como parte del estudio" in t_plan),
+            ("Cada recomendación se puede explicar en el chat", f"{len(lista)} de {len(lista)}", f"{sum(1 for e in expandidas if len(e['bloques']) >= 3)} de {len(lista)}", bool(lista) and all(len(e["bloques"]) >= 3 for e in expandidas)),
+        ],
+        "datos_extra": {"recomendaciones": len(lista)},
+    }
+
+
 # ------------------------------------------------------------------ calibración
 def bloque_calibracion():
     rng = random.Random(SEMILLA + 1)
@@ -471,7 +522,7 @@ def markdown(r):
 
 
 def main():
-    casos = [caso_semana_base(), caso_imposible(), caso_hechas(), caso_disponibilidad(), caso_calibracion()]
+    casos = [caso_semana_base(), caso_imposible(), caso_hechas(), caso_disponibilidad(), caso_calibracion(), caso_asistente()]
     sim, cal = bloque_simulacion(), bloque_calibracion()
     curva = cal.pop("_curva")
     r = {"casos": casos, "simulacion": sim, "calibracion": cal}

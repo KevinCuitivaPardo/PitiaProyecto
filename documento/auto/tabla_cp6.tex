@@ -1,0 +1,18 @@
+\textbf{Entrada.} Caso base, sin modelo de lenguaje: preguntas «¿Qué tengo hoy?», «¿cuándo es mi parcial?», «¿cómo estudio para el parcial de ECDI?», una pregunta fuera de tema y la entrevista de cinco preguntas.
+
+\begin{table}[H]
+\centering\small
+\caption{Caso CP6: El asistente responde con los datos del estudiante}\label{tab:cp6}
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}p{3.3cm} >{\raggedright\arraybackslash}p{3.3cm} c}
+\toprule
+Comprobación & Esperado & Obtenido & ¿Cumple? \\
+\midrule
+«¿Qué tengo hoy?» muestra la clase y el bloque reales del lunes 12/10 & 09:00–11:00 y Taller MATE ECDI & ambos presentes & Sí \\
+«¿Cuándo es mi parcial?» pone primero el parcial con su fecha & Parcial 2 de ECDI, 20/10 & Parcial 2 de ECDI, 20/10 & Sí \\
+El plan de repasos termina en la fecha de la entrega & martes 20/10 & martes 20/10 & Sí \\
+Una pregunta fuera de tema no se inventa & «No tengo una respuesta segura» & sin respuesta inventada & Sí \\
+La entrevista arma el plan personal y pone primero el sueño (duerme menos de 6 h) & Dormir como parte del estudio & primero & Sí \\
+Cada recomendación se puede explicar en el chat & 11 de 11 & 11 de 11 & Sí \\
+\bottomrule
+\end{tabularx}
+\end{table}

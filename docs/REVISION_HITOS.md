@@ -37,7 +37,7 @@ lo que se hizo en esta entrega.
 
 | Entregable | Estado |
 |---|---|
-| Documento: sección 7 *Análisis de resultados* | Hecho: dos mejores casos (CP1, CP3), caso más significativo (comparación con "último momento" en 300 escenarios) y calibración, con secuencia de entradas y salidas esperadas y obtenidas |
+| Documento: sección 7 *Análisis de resultados* | Hecho: dos mejores casos (CP1, CP3), otros cuatro casos (CP2, CP4, CP5, CP6 del asistente), caso más significativo (comparación con "último momento" en 300 escenarios) y calibración, con secuencia de entradas y salidas esperadas y obtenidas |
 | Documento: sección 8 *Conclusiones* | Hecho: 2 aciertos, 2 errores, 3 conclusiones, trabajo futuro |
 | Prototipo funcional MVP | Hecho (ver abajo) |
 | Fuentes finales del diseño y del código | Hecho: repositorio, anexo del documento y `README.md` |

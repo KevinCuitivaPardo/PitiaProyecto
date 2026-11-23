@@ -119,6 +119,7 @@ macros = {
     "resCalUnoAbs": str(abs(CAL["por_ritmo"]["1.0"]["reduccion_pct"])).replace(".", ","),
     "resUsuarios": CAL["usuarios_por_ritmo"], "resPruebas": n_pruebas,
     "resFactorTaller": str(R["casos"][4]["datos_extra"]["factor_taller"]).replace(".", ","),
+    "resNRecomendaciones": str(R["casos"][5]["datos_extra"]["recomendaciones"]),
     "resBloquesBase": R["casos"][0]["datos_extra"]["bloques"], "resHTareasBase": str(R["casos"][0]["datos_extra"]["horas_tareas"]).replace(".", ","),
     "resHEstudioBase": str(R["casos"][0]["datos_extra"]["horas_estudio"]).replace(".", ","),
     "resFaltanImposible": str(R["casos"][1]["datos_extra"]["faltan_h"]).replace(".", ","),
