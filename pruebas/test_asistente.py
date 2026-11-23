@@ -6,14 +6,16 @@ import os
 import sys
 import threading
 import unittest
+import types
 import urllib.request
+from unittest import mock
 from datetime import date, datetime, timedelta
 from http.server import ThreadingHTTPServer
 
 os.environ["SEMESTRIA_SIN_LLM"] = "1"
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from motor.asistente import (PREGUNTAS, TECNICAS, Ctx, _repasos, detectar, expandir_consejo, llm_estado, responder,
+from motor.asistente import (consultar_llm, PREGUNTAS, TECNICAS, Ctx, _repasos, detectar, expandir_consejo, llm_estado, responder,
                              tecnicas_para)
 from motor.asesor import consejos, validar_datos
 from motor.progreso import estadisticas, rachas
@@ -254,7 +256,75 @@ class TestAsistente(unittest.TestCase):
         self.assertLess(len(t), 2500)
 
     def test_sin_modelo_local_el_estado_es_no_disponible(self):
-        self.assertEqual(llm_estado(), {"disponible": False, "modelo": None})
+        self.assertEqual(llm_estado(), {"disponible": False, "modelo": None, "proveedor": None})
+
+
+class FalsoOpenAI:
+    """Sustituye a la biblioteca `openai`: guarda lo que se le envía y devuelve un texto fijo."""
+    visto = {}
+    falla = False
+
+    def __init__(self, **kw):
+        FalsoOpenAI.visto["cliente"] = kw
+        self.chat = types.SimpleNamespace(completions=types.SimpleNamespace(create=self._crear))
+
+    def _crear(self, **kw):
+        if FalsoOpenAI.falla:
+            raise RuntimeError("sin red")
+        FalsoOpenAI.visto["llamada"] = kw
+        msg = types.SimpleNamespace(content="Prueba corta de respuesta.")
+        return types.SimpleNamespace(choices=[types.SimpleNamespace(message=msg)])
+
+
+class TestProveedorNube(unittest.TestCase):
+    ENTORNO = {"SEMESTRIA_PROVEEDOR": "nube", "SEMESTRIA_API_KEY": "clave-de-prueba", "SEMESTRIA_API_MODELO": "modelo-x"}
+
+    def setUp(self):
+        FalsoOpenAI.visto, FalsoOpenAI.falla = {}, False
+        self.mod = types.SimpleNamespace(OpenAI=FalsoOpenAI)
+
+    def entorno(self, **extra):
+        env = {k: v for k, v in os.environ.items() if k != "SEMESTRIA_SIN_LLM"}
+        env.update(self.ENTORNO)
+        env.update(extra)
+        return mock.patch.dict(os.environ, env, clear=True)
+
+    def test_sin_clave_no_esta_disponible_y_dice_por_que(self):
+        with self.entorno(SEMESTRIA_API_KEY=""), mock.patch.dict(sys.modules, {"openai": self.mod}):
+            e = llm_estado()
+        self.assertFalse(e["disponible"])
+        self.assertIn("SEMESTRIA_API_KEY", e["motivo"])
+
+    def test_sin_la_biblioteca_dice_que_hay_que_instalarla(self):
+        with self.entorno(), mock.patch.dict(sys.modules, {"openai": None}):
+            e = llm_estado()
+        self.assertFalse(e["disponible"])
+        self.assertIn("pip install openai", e["motivo"])
+
+    def test_la_opcion_sigue_apagada_con_sin_llm(self):
+        with self.entorno(SEMESTRIA_SIN_LLM="1"), mock.patch.dict(sys.modules, {"openai": self.mod}):
+            self.assertFalse(llm_estado()["disponible"])
+
+    def test_responde_con_la_nube_y_solo_envia_el_contexto_acotado(self):
+        d, p = preparar()
+        with self.entorno(SEMESTRIA_API_URL="https://ejemplo.invalido/v1"), mock.patch.dict(sys.modules, {"openai": self.mod}):
+            self.assertEqual(llm_estado(), {"disponible": True, "modelo": "modelo-x", "proveedor": "nube"})
+            r = consultar_llm(Ctx(d, p, AHORA), "Me aburro estudiando")
+        self.assertEqual(r, {"texto": "Prueba corta de respuesta.", "modelo": "modelo-x", "proveedor": "nube"})
+        self.assertEqual(FalsoOpenAI.visto["cliente"]["base_url"], "https://ejemplo.invalido/v1")
+        enviado = FalsoOpenAI.visto["llamada"]
+        self.assertEqual(enviado["model"], "modelo-x")
+        sistema = enviado["messages"][0]["content"]
+        self.assertIn("Nunca inventes", sistema)
+        self.assertLess(len(sistema), 2500)                                  # solo el resumen acotado, no todos los datos
+        self.assertNotIn("clave-de-prueba", json.dumps(enviado["messages"]))
+
+    def test_si_la_nube_falla_el_chat_no_se_rompe(self):
+        d, p = preparar()
+        FalsoOpenAI.falla = True
+        with self.entorno(), mock.patch.dict(sys.modules, {"openai": self.mod}):
+            r = consultar_llm(Ctx(d, p, AHORA), "Me aburro estudiando")
+        self.assertIsNone(r["texto"])
 
 
 class TestAPIAsistente(unittest.TestCase):

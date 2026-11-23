@@ -29,12 +29,27 @@ Para ver pantallas con datos de demostración, abre `http://localhost:8000/#demo
 
 ## Qué IA usa
 
-Es un sistema **simbólico** (reglas y planificación heurística EDF) con **aprendizaje estadístico ligero** (la calibración con las horas reales). No usa redes neuronales propias. Solo la capa opcional del chat usa un **modelo de lenguaje local** (Ollama, por ejemplo `qwen2.5:3b`), que redacta respuestas a preguntas abiertas y nunca decide el plan; se desactiva en Ajustes o con `SEMESTRIA_SIN_LLM=1`. Todo corre en tu computador. Detalle en [docs/TIPO_DE_IA.md](docs/TIPO_DE_IA.md).
+Es un sistema **simbólico** (reglas y planificación heurística EDF) con **aprendizaje estadístico ligero** (la calibración con las horas reales). No usa redes neuronales propias. Solo la capa opcional del chat usa un **modelo de lenguaje local** (Ollama, por ejemplo `qwen2.5:3b`), que redacta respuestas a preguntas abiertas y nunca decide el plan; se desactiva en Ajustes o con `SEMESTRIA_SIN_LLM=1`. Por defecto todo corre en tu computador. Detalle en [docs/TIPO_DE_IA.md](docs/TIPO_DE_IA.md).
+
+### Opcional: modelo de lenguaje en la nube
+
+Responde mejor y más rápido que el modelo local, pero **el resumen de tu agenda y tu pregunta salen de tu computador** (la interfaz lo avisa). Sirve con cualquier servicio de API compatible con el formato de OpenAI.
+
+```powershell
+pip install openai
+$env:SEMESTRIA_PROVEEDOR = "nube"
+$env:SEMESTRIA_API_KEY = "tu-clave"
+$env:SEMESTRIA_API_MODELO = "gpt-4o-mini"      # opcional (es el valor por defecto)
+$env:SEMESTRIA_API_URL = "https://..."          # opcional: otro servicio compatible
+python servidor.py
+```
+
+Sin esas variables todo sigue como antes. Si falta la clave o la biblioteca, Ajustes lo indica. No guardes la clave en el repositorio.
 
 ## Comandos
 
 ```bash
-python -m unittest discover -s pruebas -v      # 74 pruebas automáticas
+python -m unittest discover -s pruebas -v      # 79 pruebas automáticas
 python pruebas/evaluacion.py --figuras         # evaluación del Hito 3 (resultados/ y figuras)
 python herramientas/demo.py                    # plan en consola
 python documento/generar_tablas.py             # tablas y cifras del documento

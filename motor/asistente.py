@@ -6,8 +6,10 @@ conocer cómo estudia y le propone métodos de estudio y de bienestar con su evi
 Diseño híbrido:
   * Todo lo que depende de los datos del estudiante (agenda, entregas, horas, rachas) y de los métodos de estudio
     lo calcula este módulo a partir del plan: es instantáneo, verificable y no inventa fechas.
-  * Si la pregunta no la reconoce y hay un modelo local (Ollama) disponible, `consultar_llm` redacta una respuesta
-    con un contexto acotado; el modelo no recibe nada que salga del computador y su texto se marca como tal.
+  * Si la pregunta no la reconoce y hay un modelo de lenguaje disponible, `consultar_llm` redacta una respuesta con un
+    contexto acotado y su texto se marca como tal. Por defecto es un modelo local (Ollama): nada sale del computador.
+    Opcionalmente (SEMESTRIA_PROVEEDOR=nube) usa un proveedor en la nube por su biblioteca de Python; en ese caso el
+    resumen acotado y la pregunta sí salen del computador, y la interfaz lo avisa.
 
 Las respuestas son listas de bloques que la interfaz dibuja: p (párrafo), h (título), ul/ol (listas), kv (datos),
 fechas (línea de fechas), barras (gráfica simple), ciclo (bloques de enfoque y pausa), plantilla (texto para copiar)
@@ -780,18 +782,38 @@ def responder(datos: dict, plan: dict, ahora: datetime, mensaje: str = "", accio
 OLLAMA = os.environ.get("SEMESTRIA_OLLAMA", "http://127.0.0.1:11434")
 
 
+def _estado_nube() -> dict | None:
+    """Proveedor en la nube, opcional. Se activa con SEMESTRIA_PROVEEDOR=nube y SEMESTRIA_API_KEY (necesita `pip install openai`).
+    Sirve con cualquier servicio de API compatible con el formato de OpenAI (SEMESTRIA_API_URL cambia la dirección)."""
+    if os.environ.get("SEMESTRIA_PROVEEDOR", "").lower() != "nube":
+        return None
+    modelo = os.environ.get("SEMESTRIA_API_MODELO", "gpt-4o-mini")
+    base = {"disponible": False, "modelo": None, "proveedor": "nube"}
+    if not os.environ.get("SEMESTRIA_API_KEY"):
+        return {**base, "motivo": "falta la variable SEMESTRIA_API_KEY"}
+    try:
+        import openai  # noqa: F401
+    except ImportError:
+        return {**base, "motivo": "falta instalar la biblioteca: pip install openai"}
+    return {"disponible": True, "modelo": modelo, "proveedor": "nube"}
+
+
 def llm_estado() -> dict:
-    """Si hay un modelo local disponible. Se desactiva con SEMESTRIA_SIN_LLM=1."""
+    """Qué modelo de lenguaje hay disponible. Se desactiva con SEMESTRIA_SIN_LLM=1.
+    Por defecto busca uno local (Ollama); con SEMESTRIA_PROVEEDOR=nube usa el proveedor en la nube configurado."""
     if os.environ.get("SEMESTRIA_SIN_LLM"):
-        return {"disponible": False, "modelo": None}
+        return {"disponible": False, "modelo": None, "proveedor": None}
+    nube = _estado_nube()
+    if nube:
+        return nube
     try:
         with urllib.request.urlopen(OLLAMA + "/api/tags", timeout=0.6) as r:
             modelos = [m["name"] for m in json.load(r).get("models", [])]
     except (urllib.error.URLError, OSError, ValueError, KeyError):
-        return {"disponible": False, "modelo": None}
+        return {"disponible": False, "modelo": None, "proveedor": "local"}
     pref = os.environ.get("SEMESTRIA_MODELO")
     modelo = pref if pref in modelos else next((m for m in modelos if "qwen" in m or "llama" in m), modelos[0] if modelos else None)
-    return {"disponible": bool(modelo), "modelo": modelo}
+    return {"disponible": bool(modelo), "modelo": modelo, "proveedor": "local"}
 
 
 def contexto_texto(c: Ctx) -> str:
@@ -812,7 +834,7 @@ def contexto_texto(c: Ctx) -> str:
 def consultar_llm(c: Ctx, pregunta: str, historial: list[dict] | None = None, timeout: int = 90) -> dict:
     est = llm_estado()
     if not est["disponible"]:
-        return {"texto": None, "modelo": None}
+        return {"texto": None, "modelo": None, "proveedor": None}
     sistema = ("Eres el asistente académico de SemestrIA. Responde siempre en español, de forma breve (máximo 110 palabras) y cálida. "
                "Solo ayudas con: el horario y las entregas del estudiante, organización del tiempo, métodos de estudio y bienestar académico. "
                "Si la pregunta es de otro tema, responde en una frase que solo puedes ayudar con eso y ofrece alguna de esas opciones. "
@@ -825,11 +847,25 @@ def consultar_llm(c: Ctx, pregunta: str, historial: list[dict] | None = None, ti
         if m.get("rol") in ("user", "assistant") and isinstance(m.get("txt"), str):
             msgs.append({"role": m["rol"], "content": m["txt"][:600]})
     msgs.append({"role": "user", "content": pregunta[:800]})
-    cuerpo = {"model": est["modelo"], "stream": False, "messages": msgs, "options": {"temperature": 0.3, "num_predict": 220}}
-    req = urllib.request.Request(OLLAMA + "/api/chat", data=json.dumps(cuerpo).encode(), headers={"Content-Type": "application/json"})
     try:
-        with urllib.request.urlopen(req, timeout=timeout) as r:
-            texto = json.load(r)["message"]["content"].strip()
-    except (urllib.error.URLError, OSError, ValueError, KeyError):
-        return {"texto": None, "modelo": est["modelo"]}
-    return {"texto": texto or None, "modelo": est["modelo"]}
+        if est.get("proveedor") == "nube":
+            texto = _llamar_nube(est["modelo"], msgs, timeout)
+        else:
+            texto = _llamar_local(est["modelo"], msgs, timeout)
+    except Exception:           # sin red, clave inválida, tiempo agotado...: el chat sigue con su respuesta de ayuda
+        return {"texto": None, "modelo": est["modelo"], "proveedor": est.get("proveedor")}
+    return {"texto": texto or None, "modelo": est["modelo"], "proveedor": est.get("proveedor")}
+
+
+def _llamar_local(modelo: str, msgs: list[dict], timeout: int) -> str:
+    cuerpo = {"model": modelo, "stream": False, "messages": msgs, "options": {"temperature": 0.3, "num_predict": 220}}
+    req = urllib.request.Request(OLLAMA + "/api/chat", data=json.dumps(cuerpo).encode(), headers={"Content-Type": "application/json"})
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return json.load(r)["message"]["content"].strip()
+
+
+def _llamar_nube(modelo: str, msgs: list[dict], timeout: int) -> str:
+    import openai
+    cliente = openai.OpenAI(api_key=os.environ["SEMESTRIA_API_KEY"], base_url=os.environ.get("SEMESTRIA_API_URL") or None, timeout=timeout)
+    r = cliente.chat.completions.create(model=modelo, messages=msgs, temperature=0.3, max_tokens=260)
+    return (r.choices[0].message.content or "").strip()

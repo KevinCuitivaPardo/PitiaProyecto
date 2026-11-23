@@ -16,19 +16,19 @@ SemestrIA es un **agente basado en conocimiento y en objetivos** (Russell y Norv
 | Asistente: diálogo | Entrevista de 5 preguntas (máquina de estados) que arma un perfil | Simbólica | No (construye perfil) | Sí |
 | Asistente: respuesta | Recomendador basado en conocimiento (12 métodos con evidencia) y plantillas con los datos del estudiante | Simbólica | No | Sí |
 | Progreso | Estadística descriptiva (horas por semana, porcentajes, rachas) | No es IA estricta | No | Sí |
-| Modelo local (opcional) | LLM preentrenado tipo *transformer* (Ollama + Qwen2.5 de 3 mil millones de parámetros), solo inferencia | Neuronal, generativa | No (no se entrena ni ajusta) | No |
+| Modelo de lenguaje (opcional) | LLM preentrenado tipo *transformer*: por defecto local (Ollama + Qwen2.5 de 3 mil millones de parámetros); opcionalmente un proveedor en la nube con su biblioteca de Python. Solo inferencia | Neuronal, generativa | No (no se entrena ni ajusta) | No |
 
 ## ¿Es una red neuronal?
 - **El núcleo, no.** Plan, estimaciones, recomendaciones y respuestas sobre horario y métodos salen de reglas y algoritmos legibles y reproducibles.
 - **No se entrenó ningún modelo propio**, no hay aprendizaje profundo propio y no se usan datos de otros estudiantes.
-- **La capa opcional sí es una red neuronal**, pero ya viene entrenada por terceros, el sistema solo la consulta, corre en tu computador (sin nube) y no puede tocar el plan.
+- **La capa opcional sí es una red neuronal**, pero ya viene entrenada por terceros, el sistema solo la consulta, por defecto corre en tu computador (sin nube) y no puede tocar el plan. Con `SEMESTRIA_PROVEEDOR=nube` se usa un servicio en la nube: responde mejor y más rápido, pero el resumen de tu agenda y tu pregunta salen de tu computador (la interfaz lo avisa).
 
 ## Características
 - **Determinista y reproducible:** mismos datos, mismo plan. Solo varía el modelo de lenguaje opcional (temperatura 0,3).
 - **Explicable:** cada bloque, recomendación y factor de calibración dice su motivo; los métodos citan su evidencia.
-- **Verificable:** 74 pruebas y 300 escenarios simulados (0 violaciones de restricciones duras). Lo que redacta el modelo de lenguaje no se puede verificar así.
+- **Verificable:** 79 pruebas y 300 escenarios simulados (0 violaciones de restricciones duras). Lo que redacta el modelo de lenguaje no se puede verificar así.
 - **Sin entrenamiento ni datos externos:** el único aprendizaje es la calibración, anclada en 1, que sirve con pocos registros.
-- **Privado:** todo local, incluida la capa neuronal.
+- **Privado por defecto:** todo local, incluida la capa neuronal; solo la opción en la nube envía datos fuera.
 - **Rápido y gratuito:** ~3,5 ms por plan; respuestas del motor inmediatas; el modelo local tarda decenas de segundos sin GPU.
 - **Degrada con elegancia:** sin Ollama todo funciona; sin historial, el factor de calibración es 1.
 
@@ -37,7 +37,7 @@ Los modelos generativos pueden afirmar cosas falsas con seguridad (Ji et al., 20
 1. Instrucción restringida: solo horario, organización, métodos de estudio y bienestar; prohíbe inventar fechas, notas, libros o estudios y citar fuentes.
 2. Recibe un resumen corto y fijo de los datos del estudiante y debe usar solo eso (idea afín a fundamentar la generación en datos, Lewis et al., 2020, sin base vectorial).
 3. No puede mover bloques ni fechas: las restricciones duras viven en el motor.
-4. Cada respuesta se marca como «redactada por el modelo local».
+4. Cada respuesta se marca como «redactada por el modelo local» o «por un modelo en la nube».
 5. Se apaga en Ajustes o con `SEMESTRIA_SIN_LLM=1`.
 
 ## Por qué esta combinación

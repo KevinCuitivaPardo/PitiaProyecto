@@ -56,7 +56,7 @@ function msgHTML(m, ultimo) {
   if (m.rol === "user") return `<div class="m user"><div class="burbuja">${esc(m.txt)}</div></div>`;
   if (m.cargando) return `<div class="m bot"><div class="burbuja pensando"><span></span><span></span><span></span></div></div>`;
   const sug = ultimo && m.sugerencias && m.sugerencias.length ? `<div class="sugs">${m.sugerencias.map((s, i) => `<button class="chipb" data-sug="${i}">${esc(s.texto)}</button>`).join("")}</div>` : "";
-  const modelo = m.modelo ? `<div class="modelo">Respuesta redactada por el modelo local (${esc(m.modelo)}). Verifica los datos importantes con tu calendario.</div>` : "";
+  const modelo = m.modelo ? `<div class="modelo">Respuesta redactada por ${m.proveedor === "nube" ? "un modelo en la nube" : "el modelo local"} (${esc(m.modelo)}). Verifica los datos importantes con tu calendario.</div>` : "";
   return `<div class="m bot"><div class="burbuja">${(m.bloques || []).map(bloqueHTML).join("")}${modelo}</div>${sug}</div>`;
 }
 
@@ -92,7 +92,7 @@ async function chatEnviar({ texto, accion, etiqueta }) {
       m.cargando = true; pintarChat();
       const hist = S.chat.slice(-7, -2).map(x => ({ rol: x.rol === "user" ? "user" : "assistant", txt: planoDe(x) }));
       const r = await (await fetch("/api/chat_llm", { method: "POST", headers: HDR, body: JSON.stringify({ ...cuerpo, mensaje: texto, historial: hist }) })).json();
-      if (r.texto) { m.bloques = r.texto.split(/\n{2,}/).map(t => ({ t: "p", txt: t.trim() })).filter(b => b.txt); m.modelo = r.modelo; }
+      if (r.texto) { m.bloques = r.texto.split(/\n{2,}/).map(t => ({ t: "p", txt: t.trim() })).filter(b => b.txt); m.modelo = r.modelo; m.proveedor = r.proveedor; }
       m.cargando = false;
     }
   } catch (e) {
@@ -120,7 +120,7 @@ async function vAsistente() {
   const cats = ["todos", ...new Set(plan.consejos.map(c => c.categoria))];
   const L = plan.consejos.filter(c => S.catf === "todos" || c.categoria === S.catf);
   const pie = llmActivo()
-    ? `Las preguntas abiertas las responde un modelo local (${esc(ESTADO_LLM.modelo)}) en tu computador; lo demás lo calcula SemestrIA con tus datos.`
+    ? (ESTADO_LLM.proveedor === "nube" ? `Las preguntas abiertas las responde un modelo en la nube (${esc(ESTADO_LLM.modelo)}): el resumen de tu agenda y tu pregunta salen de tu computador. Lo demás lo calcula SemestrIA con tus datos.` : `Las preguntas abiertas las responde un modelo local (${esc(ESTADO_LLM.modelo)}) en tu computador; lo demás lo calcula SemestrIA con tus datos.`)
     : "Las respuestas se calculan con tus datos y una base de métodos de estudio con evidencia. No usa un modelo de lenguaje.";
   $("#v").innerHTML = `<div class="cal-top"><div><h2>Asistente</h2><p class="sub" style="margin:2px 0 0">Pregunta por tu horario, pide métodos de estudio o toca una recomendación.</p></div><span class="sp"></span>
     <button class="b g sm" id="nueva">Nueva conversación</button></div>
@@ -144,15 +144,15 @@ async function vAsistente() {
 function asistenteAjustesHTML() {
   const p = S.datos.perfil || {}, hay = Object.keys(p).length;
   return `<div class="card"><h3>Asistente</h3>
-    <p class="sub" style="margin-top:-4px" id="llmestado">Comprobando si hay un modelo local...</p>
-    <label><input type="checkbox" id="usarllm" ${S.usarLLM ? "checked" : ""}> Usar el modelo local para las preguntas abiertas</label>
+    <p class="sub" style="margin-top:-4px" id="llmestado">Comprobando si hay un modelo de lenguaje...</p>
+    <label><input type="checkbox" id="usarllm" ${S.usarLLM ? "checked" : ""}> Usar el modelo de lenguaje para las preguntas abiertas</label>
     <p style="margin:14px 0 0"><b>Tu perfil de estudio</b> <small>(sale de las preguntas del asistente)</small></p>
     <p class="mut" style="margin:4px 0 8px">${hay ? Object.entries(p).map(([k, v]) => `${esc(k)}: ${esc(v)}`).join(" · ") : "Aún no respondes las preguntas del asistente."}</p>
     ${hay ? `<button class="b g sm" id="borrarperfil">Borrar mi perfil</button>` : ""}</div>`;
 }
 async function conectarAjustesAsistente() {
   const e = await estadoLLM(), el = $("#llmestado");
-  if (el) el.textContent = e.disponible ? `Modelo local detectado: ${e.modelo}. Funciona en tu computador, sin enviar tus datos a internet.` : "No se detectó un modelo local (Ollama). El asistente responde con su base de métodos y tus datos.";
+  if (el) el.textContent = e.disponible ? (e.proveedor === "nube" ? `Modelo en la nube: ${e.modelo}. Para las preguntas abiertas se envían a ese servicio el resumen de tu agenda y tu pregunta; desactívalo si no quieres eso.` : `Modelo local detectado: ${e.modelo}. Funciona en tu computador, sin enviar tus datos a internet.`) : (e.motivo ? `El modelo en la nube no está listo: ${e.motivo}.` : "No se detectó un modelo local (Ollama). El asistente responde con su base de métodos y tus datos.");
   if ($("#usarllm")) $("#usarllm").onchange = ev => { S.usarLLM = ev.target.checked; guardar(); };
   if ($("#borrarperfil")) $("#borrarperfil").onclick = () => { S.datos.perfil = {}; replanificar(); };
 }

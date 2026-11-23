@@ -5,8 +5,8 @@ Sirve la interfaz (prototipo/) y expone el motor de recomendación:
   POST /api/importar  -> valida y normaliza un horario subido (JSON)
   POST /api/plan      -> {"datos": {...}, "ahora": "YYYY-MM-DDTHH:MM"} -> plan, recomendaciones y progreso
   POST /api/chat      -> {"datos", "ahora", "mensaje", "accion"} -> respuesta del asistente (bloques y sugerencias)
-  POST /api/chat_llm  -> igual, pero redactada por el modelo local (Ollama) si hay uno disponible
-  GET  /api/asistente_estado -> {"disponible": bool, "modelo": str|None}
+  POST /api/chat_llm  -> igual, pero redactada por el modelo de lenguaje (local con Ollama, o en la nube si se configuró) si hay uno
+  GET  /api/asistente_estado -> {"disponible": bool, "modelo": str|None, "proveedor": "local"|"nube"|None}
 
 Uso:  python servidor.py [puerto]     (por defecto 8000)
 """

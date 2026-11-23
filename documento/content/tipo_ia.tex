@@ -19,19 +19,19 @@ Asistente: comprensión & Detección de intención por coincidencia de raíces d
 Asistente: diálogo & Entrevista guiada de cinco preguntas (máquina de estados) que construye un perfil & Simbólica & Construye un perfil, no entrena & Sí \\
 Asistente: respuesta & Recomendador basado en conocimiento (12 métodos con evidencia) y generación por plantillas con los datos del estudiante & Simbólica & No & Sí \\
 Progreso & Estadística descriptiva: sumas por semana, porcentajes y rachas & No es IA en sentido estricto & No & Sí \\
-Modelo de lenguaje local (opcional) & Modelo de lenguaje grande preentrenado (arquitectura \emph{transformer}), solo inferencia & Neuronal, generativa & No (no se entrena ni se ajusta) & No \\
+Modelo de lenguaje (opcional, local o en la nube) & Modelo de lenguaje grande preentrenado (arquitectura \emph{transformer}), solo inferencia & Neuronal, generativa & No (no se entrena ni se ajusta) & No \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-\textbf{¿Es una red neuronal?} No, en lo que decide. El plan, las estimaciones, las recomendaciones, las respuestas sobre el horario y los métodos de estudio los producen reglas y algoritmos que se pueden leer, probar y reproducir. No se entrenó ningún modelo propio, no hay aprendizaje profundo propio y no se usan datos de otros estudiantes. La excepción es la capa opcional: si el computador tiene instalado \textbf{Ollama} \parencite{Ollama} con un modelo como \textbf{Qwen2.5 de 3\,000 millones de parámetros} \parencite{Qwen2024}, una red neuronal de tipo \emph{transformer} \parencite{Vaswani2017} que ya viene entrenada, el asistente le entrega las preguntas abiertas que el motor no reconoce. El sistema solo la \emph{consulta} (inferencia); no la entrena ni la ajusta, y el modelo corre en el propio computador, sin enviar datos a la nube. La versión de 3\,000 millones de parámetros se distribuye bajo la licencia de Qwen, que restringe el uso comercial; para un proyecto académico no es un obstáculo, pero habría que revisarla si el sistema se comercializara.
+\textbf{¿Es una red neuronal?} No, en lo que decide. El plan, las estimaciones, las recomendaciones, las respuestas sobre el horario y los métodos de estudio los producen reglas y algoritmos que se pueden leer, probar y reproducir. No se entrenó ningún modelo propio, no hay aprendizaje profundo propio y no se usan datos de otros estudiantes. La excepción es la capa opcional: si el computador tiene instalado \textbf{Ollama} \parencite{Ollama} con un modelo como \textbf{Qwen2.5 de 3\,000 millones de parámetros} \parencite{Qwen2024}, una red neuronal de tipo \emph{transformer} \parencite{Vaswani2017} que ya viene entrenada, el asistente le entrega las preguntas abiertas que el motor no reconoce. El sistema solo la \emph{consulta} (inferencia); no la entrena ni la ajusta, y por defecto el modelo corre en el propio computador, sin enviar datos a la nube. Existe además una opción, desactivada por defecto, para usar un proveedor en la nube mediante su biblioteca de Python (variables de entorno \texttt{SEMESTRIA\_PROVEEDOR=nube} y \texttt{SEMESTRIA\_API\_KEY}); responde mejor y más rápido, pero el resumen acotado de la agenda y la pregunta salen del computador, y la interfaz lo avisa. La versión de 3\,000 millones de parámetros se distribuye bajo la licencia de Qwen, que restringe el uso comercial; para un proyecto académico no es un obstáculo, pero habría que revisarla si el sistema se comercializara.
 
 \textbf{Cómo se acota el modelo de lenguaje.} Los modelos generativos pueden producir afirmaciones falsas con apariencia de certeza \parencite{Ji2023}; en una prueba temprana el modelo inventó títulos de libros, lo que motivó estas medidas:
 \begin{itemize}
     \item \emph{Alcance restringido.} La instrucción del sistema limita el tema al horario, la organización del tiempo, los métodos de estudio y el bienestar académico, y prohíbe inventar fechas, notas, libros o estudios y citar fuentes concretas.
     \item \emph{Datos fundamentados.} Se le entrega un resumen corto y fijo de los datos del estudiante (agenda de hoy y mañana, próximas entregas, materias y perfil) y se le pide usar solo ese contexto, idea cercana a fundamentar la generación en datos recuperados \parencite{Lewis2020}, aunque sin base vectorial.
     \item \emph{Sin poder sobre el plan.} Las restricciones duras viven en el motor determinista; el modelo no puede mover un bloque ni cambiar una fecha.
-    \item \emph{Transparencia.} Toda respuesta del modelo se marca como «redactada por el modelo local» y se invita a verificarla; se puede apagar en Ajustes o con la variable \texttt{SEMESTRIA\_SIN\_LLM=1}.
+    \item \emph{Transparencia.} Toda respuesta del modelo se marca como «redactada por el modelo local» (o «por un modelo en la nube») y se invita a verificarla; se puede apagar en Ajustes o con la variable \texttt{SEMESTRIA\_SIN\_LLM=1}.
     \item \emph{Degradación elegante.} Sin Ollama, o si el modelo no responde a tiempo, el sistema sigue funcionando completo con el motor.
 \end{itemize}
 
@@ -47,8 +47,8 @@ Explicabilidad & Cada bloque, recomendación y factor de calibración trae su mo
 Verificabilidad & Las restricciones duras se comprueban automáticamente (\resPruebas\ pruebas y \resEscenarios\ escenarios simulados); lo generado por el modelo de lenguaje no es verificable de ese modo \\
 Datos necesarios & Ninguno externo: solo los del estudiante. La calibración funciona con pocos registros porque está anclada en 1 \\
 Entrenamiento & No hay. El único aprendizaje es la calibración, que se recalcula en milisegundos con cada registro \\
-Privacidad & Todo corre en el computador del estudiante; la capa neuronal opcional también es local \\
-Costo y velocidad & Sin servicios de pago. Un plan tarda unos \resMsMedia\ ms; las respuestas del motor son inmediatas y las del modelo local tardan decenas de segundos en un computador sin GPU \\
+Privacidad & Todo corre en el computador del estudiante. La capa neuronal opcional también es local por defecto; solo si se activa el proveedor en la nube salen de él el resumen acotado de la agenda y la pregunta \\
+Costo y velocidad & Sin servicios de pago por defecto (el proveedor en la nube opcional sí cobra). Un plan tarda unos \resMsMedia\ ms; las respuestas del motor son inmediatas y las del modelo local tardan decenas de segundos en un computador sin GPU \\
 Robustez & Si falta el modelo de lenguaje, nada deja de funcionar; si falta el historial, el factor de calibración es 1 \\
 Límites & No garantiza el óptimo, no mide al usuario real, el reconocimiento de intenciones se basa en palabras clave y no entiende frases muy distintas a las previstas, y las horas base son supuestos \\
 \bottomrule
