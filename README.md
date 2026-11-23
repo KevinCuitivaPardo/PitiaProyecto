@@ -4,6 +4,16 @@ Asistente de IA que convierte el **horario fijo**, los **créditos** y los **tra
 
 Proyecto de curso PTIA, Escuela Colombiana de Ingeniería Julio Garavito. **Estado: Hito 3 (MVP).**
 
+## Entrega del Hito 3
+
+| Entregable | Dónde |
+|---|---|
+| **Documento del proyecto (PDF)** | [`documento/SemestrIA_Hito3.pdf`](documento/SemestrIA_Hito3.pdf), 43 páginas. Las fuentes LaTeX están en `documento/` (ver [documento/README.md](documento/README.md)) |
+| **Video (resultados y demo del MVP)** | https://youtu.be/ruDVDnsIchg |
+| **Prototipo funcional (MVP)** | Este repositorio; se ejecuta con `python servidor.py` (ver «Inicio rápido») |
+| **Fuentes del diseño y del código** | `motor/`, `prototipo/`, `servidor.py` y `pruebas/`; el anexo A del documento explica la estructura |
+| **Resultados de la evaluación** | `resultados/evaluacion.md` y `resultados/evaluacion.json` |
+
 ## Inicio rápido
 
 Requiere Python 3.10 o superior. No hay que instalar nada.
@@ -29,7 +39,7 @@ Para ver pantallas con datos de demostración, abre `http://localhost:8000/#demo
 
 ## Qué IA usa
 
-Es un sistema **simbólico** (reglas y planificación heurística EDF) con **aprendizaje estadístico ligero** (la calibración con las horas reales). No usa redes neuronales propias. Solo la capa opcional del chat usa un **modelo de lenguaje local** (Ollama, por ejemplo `qwen2.5:3b`), que redacta respuestas a preguntas abiertas y nunca decide el plan; se desactiva en Ajustes o con `SEMESTRIA_SIN_LLM=1`. Por defecto todo corre en tu computador. Detalle en [docs/TIPO_DE_IA.md](docs/TIPO_DE_IA.md).
+Es un sistema **simbólico** (reglas y planificación heurística EDF) con **aprendizaje estadístico ligero** (la calibración con las horas reales). No usa redes neuronales propias. Solo la capa opcional del chat usa un **modelo de lenguaje local** (Ollama, por ejemplo `qwen2.5:3b`), que redacta respuestas a preguntas abiertas y nunca decide el plan; se desactiva en Ajustes o con `SEMESTRIA_SIN_LLM=1`. Por defecto todo corre en tu computador. Detalle en la sección «Qué tipo de inteligencia artificial usa SemestrIA» del documento.
 
 ### Opcional: modelo de lenguaje en la nube
 
@@ -68,7 +78,6 @@ python herramientas/generar_diagramas.py       # diagramas (requiere matplotlib)
 | `pruebas/` | Pruebas unitarias y `evaluacion.py` (casos, simulación y calibración) |
 | `resultados/` | Salida de la evaluación (`evaluacion.json`, `evaluacion.md`) |
 | `documento/` | Documento del proyecto en la plantilla LaTeX (ver [documento/README.md](documento/README.md)) |
-| `docs/` | Revisión por hitos y tipo de IA |
 | `herramientas/` | Scripts de apoyo: demo en consola, capturas y diagramas |
 | `archivo_hito2/` | Prototipo del Hito 2 (con motor en JavaScript), conservado como historial |
 
