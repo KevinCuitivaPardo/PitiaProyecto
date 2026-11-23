@@ -8,7 +8,7 @@ Proyecto de curso PTIA, Escuela Colombiana de Ingeniería Julio Garavito. **Esta
 
 | Entregable | Dónde |
 |---|---|
-| **Documento del proyecto (PDF)** | [`documento/SemestrIA_Hito3.pdf`](documento/SemestrIA_Hito3.pdf), 43 páginas. Las fuentes LaTeX están en `documento/` (ver [documento/README.md](documento/README.md)) |
+| **Documento del proyecto (PDF)** | [`documento/SemestrIA_Hito3.pdf`](documento/SemestrIA_Hito3.pdf). Las fuentes LaTeX están en `documento/` (ver [documento/README.md](documento/README.md)) |
 | **Video (resultados y demo del MVP)** | https://youtu.be/ruDVDnsIchg |
 | **Prototipo funcional (MVP)** | Este repositorio; se ejecuta con `python servidor.py` (ver «Inicio rápido») |
 | **Fuentes del diseño y del código** | `motor/`, `prototipo/`, `servidor.py` y `pruebas/`; el anexo A del documento explica la estructura |

@@ -11,7 +11,7 @@ En **Overleaf**: subir esta carpeta, elegir compilador **XeLaTeX** y abrir `main
 1. Completar los placeholders (`python documento/verificar_latex.py` los lista): grupo, segundo integrante y fecha en `content/portada.tex`, y nombres y fecha en `content/declaracion.tex`.
 2. Confirmar los problemas 2 y 3 de `content/introduccion.tex` y las calificaciones de la tabla de selección en `content/descripcion_problema.tex` (son una propuesta).
 3. Referencias verificadas por búsqueda web el 2026-11-21 (autores, revista, volumen y páginas); el Decreto 1330 (art. 2.5.3.2.4.1) se confirmó en el Gestor Normativo; falta comprobar que abran las URL de Reclaim, Motion y Ollama.
-4. El PDF compilado está en `SemestrIA_Hito3.pdf` (compilado con XeLaTeX y biber; 43 páginas). Hay que volver a compilarlo y reemplazarlo si se cambia el texto, las tablas automáticas o las figuras.
+4. El PDF compilado está en `SemestrIA_Hito3.pdf` (versión final entregada). Hay que volver a compilarlo y reemplazarlo si se cambia el texto, las tablas automáticas o las figuras.
 
 ## Regenerar cifras, tablas y figuras
 Los números del texto salen de la evaluación; no se escriben a mano.
