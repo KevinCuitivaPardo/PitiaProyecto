@@ -182,6 +182,19 @@ class TestAsistente(unittest.TestCase):
             self.assertTrue(len(r["bloques"]) >= 3, cj["titulo"])
             self.assertTrue(r["sugerencias"])
 
+    def test_la_recomendacion_de_un_parcial_se_aplica_a_ese_parcial(self):
+        self.d["trabajos"].append({"id": "p9", "materia": "ISIS ARSW", "tipo": "Parcial", "titulo": "Parcial de ensayo", "entrega": "2026-10-19", "dificultad": "Difícil"})
+        self.p = planificar(self.d, AHORA)
+        c = Ctx(self.d, self.p, AHORA)
+        for cj in consejos(self.d, self.p, AHORA):
+            t = next((x for x in self.p["tareas"] if x["id"] == cj.get("tarea_id")), None)
+            if cj["categoria"] == "estrategia" and t and t["tipo"] == "Parcial":
+                texto = textos(expandir_consejo(cj, c))
+                self.assertIn(f"«{t['titulo']}»", texto, cj["titulo"])
+                otros = {x["titulo"] for x in self.p["tareas"] if x["tipo"] == "Parcial" and x["id"] != t["id"]}
+                for o in otros:
+                    self.assertNotIn(f"Aplicado a «{o}»", texto, cj["titulo"])
+
     def test_recomendacion_de_riesgo_trae_mensaje_para_el_profesor(self):
         self.d["trabajos"].append({"id": "x1", "materia": "ISIS ARSW", "tipo": "Proyecto", "titulo": "Imposible", "entrega": "2026-10-13", "dificultad": "Difícil", "horas": 40})
         self.p = planificar(self.d, AHORA)

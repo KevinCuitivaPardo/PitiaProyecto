@@ -257,9 +257,9 @@
   "pct_tareas_cubiertas": 98.4,
   "escenarios_completos": 257,
   "escenarios_con_advertencia": 43,
-  "ms_por_plan_media": 3.5,
-  "ms_por_plan_p95": 5.08,
-  "ms_por_plan_max": 8.02,
+  "ms_por_plan_media": 3.37,
+  "ms_por_plan_p95": 4.86,
+  "ms_por_plan_max": 8.58,
   "edf": {
    "dias_sobrecargados_total": 0,
    "dias_sobrecargados_por_escenario": 0.0,

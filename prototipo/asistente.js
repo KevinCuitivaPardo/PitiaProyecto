@@ -158,7 +158,7 @@ async function conectarAjustesAsistente() {
 }
 
 /* ================= progreso ================= */
-const num1 = v => (+(+v).toFixed(1)).toLocaleString("es-CO");
+const num1 = v => String(+(+v).toFixed(1));   // con punto decimal, igual que el resto de la aplicación
 const fmtH = h => num1(h) + " h";
 
 function anillo(pct, grande, color = "var(--pri)") {

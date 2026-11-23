@@ -43,7 +43,7 @@ def _dia(f: date) -> str:
 
 
 def _h(minutos: float) -> str:
-    return f"{minutos / 60:g} h".replace(".", ",")
+    return f"{minutos / 60:g} h"   # con punto decimal, como el resto de la interfaz
 
 
 def P(txt): return {"t": "p", "txt": txt}
@@ -161,8 +161,8 @@ def _repasos(hoy: date, due: date) -> list[date]:
     return sorted(set(res))
 
 
-def _aplicar_espaciado(c: Ctx, perfil):
-    t = c.prueba_principal()
+def _aplicar_espaciado(c: Ctx, perfil, t=None):
+    t = t or c.prueba_principal()
     if not t:
         return [P("Cuando registres un parcial o un proyecto te propongo las fechas exactas de repaso.")]
     due = fecha(t["due"])
@@ -172,8 +172,8 @@ def _aplicar_espaciado(c: Ctx, perfil):
             P("Cada repaso dura 20 a 30 minutos y es corto a propósito: lo importante es volver varias veces, no estudiar más tiempo.")]
 
 
-def _aplicar_recuperacion(c: Ctx, perfil):
-    t = c.prueba_principal()
+def _aplicar_recuperacion(c: Ctx, perfil, t=None):
+    t = t or c.prueba_principal()
     if not t:
         return []
     fs = c.fechas_tarea(t["id"])
@@ -457,7 +457,7 @@ def expandir_consejo(cj: dict, c: Ctx) -> dict:
         sug += [SUG("Cómo priorizo mis entregas", "mensaje", texto="¿Cuáles son mis próximas entregas?")]
     elif cat == "estrategia":
         if t and t["tipo"] == "Parcial":
-            out += _aplicar_espaciado(c, {}) + _aplicar_recuperacion(c, {})
+            out += _aplicar_espaciado(c, {}, t) + _aplicar_recuperacion(c, {}, t)
             sug += [SUG("Qué es la repetición espaciada", "tecnica", id="espaciado"), SUG("Cómo hago la autoevaluación", "tecnica", id="recuperacion")]
         elif t and t["tipo"] in ("Proyecto", "Taller"):
             fs = c.fechas_tarea(t["id"])
@@ -607,7 +607,7 @@ def r_calibracion(c: Ctx) -> dict:
     t = resumen_calibracion(c.datos.get("historial", []), ["Taller", "Laboratorio", "Proyecto", "Parcial"])
     n = len(c.datos.get("historial", []))
     out = [H("Cuánto te toma cada trabajo"), P("Las horas por tipo de trabajo son estimaciones. Cuando terminas un trabajo y anotas cuánto tardaste, aprendo tu ritmo y ajusto los próximos." + (f" Llevas {n} registro(s)." if n else " Aún no tienes registros."))]
-    out.append(KV([(x["tipo"], f"factor {x['factor']:.2f}".replace(".", ",") + f" ({x['registros']} registros)") for x in t]))
+    out.append(KV([(x["tipo"], f"factor {x['factor']:.2f}" + f" ({x['registros']} registros)") for x in t]))
     return {"bloques": out, "sugerencias": []}
 
 
@@ -627,7 +627,7 @@ def r_preparar(c: Ctx, materia: str | None) -> dict:
     dias = (due - c.hoy).days
     out = [H(f"Cómo preparar «{t['titulo']}»"), P(f"Se entrega el {_dia(due)} (en {dias} días) y su dificultad es {t['dificultad'].lower()}; el plan le reserva {_h(c.asignado_min(t['id']))} de estudio."),
            P("Combina dos métodos con buena evidencia: repartir los repasos y practicar recordando.")]
-    out += _aplicar_espaciado(c, {}) + _aplicar_recuperacion(c, {})
+    out += _aplicar_espaciado(c, {}, t) + _aplicar_recuperacion(c, {}, t)
     out += [P("Y trabaja cada bloque con este ritmo:"), CICLO(50, 10, 2), EVID([REF["cepeda"], REF["roediger"], REF["dunlosky"]])]
     return {"bloques": out, "sugerencias": [SUG("Repetición espaciada", "tecnica", id="espaciado"), SUG("Autoevaluación paso a paso", "tecnica", id="recuperacion"), SUG("Manejar los nervios", "tecnica", id="ansiedad")]}
 

@@ -26,7 +26,7 @@ SemestrIA es un **agente basado en conocimiento y en objetivos** (Russell y Norv
 ## Características
 - **Determinista y reproducible:** mismos datos, mismo plan. Solo varía el modelo de lenguaje opcional (temperatura 0,3).
 - **Explicable:** cada bloque, recomendación y factor de calibración dice su motivo; los métodos citan su evidencia.
-- **Verificable:** 73 pruebas y 300 escenarios simulados (0 violaciones de restricciones duras). Lo que redacta el modelo de lenguaje no se puede verificar así.
+- **Verificable:** 74 pruebas y 300 escenarios simulados (0 violaciones de restricciones duras). Lo que redacta el modelo de lenguaje no se puede verificar así.
 - **Sin entrenamiento ni datos externos:** el único aprendizaje es la calibración, anclada en 1, que sirve con pocos registros.
 - **Privado:** todo local, incluida la capa neuronal.
 - **Rápido y gratuito:** ~3,5 ms por plan; respuestas del motor inmediatas; el modelo local tarda decenas de segundos sin GPU.

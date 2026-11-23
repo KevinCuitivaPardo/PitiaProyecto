@@ -270,7 +270,7 @@ function calibracionHTML() {
   return `<div class="card"><h3>Calibración de estimaciones</h3>
     <p class="sub" style="margin-top:-4px">Aprende de las horas reales que registras al terminar un trabajo. Un factor de 1,00 significa que se usa la estimación base. ${n ? `Tienes ${n} registro(s).` : "Aún no hay registros."}</p>
     <table><tr><th>Tipo de trabajo</th><th class="n">Registros</th><th class="n">Factor aplicado</th></tr>
-    ${plan.calibracion.map(c => `<tr><td>${c.tipo}</td><td class="n">${c.registros}</td><td class="n"><b>${c.factor.toFixed(2).replace(".", ",")}</b></td></tr>`).join("")}</table>
+    ${plan.calibracion.map(c => `<tr><td>${c.tipo}</td><td class="n">${c.registros}</td><td class="n"><b>${c.factor.toFixed(2)}</b></td></tr>`).join("")}</table>
     ${n ? `<p style="margin:12px 0 0"><button class="b g sm" id="borrarhist">Borrar historial</button></p>` : ""}</div>`;
 }
 

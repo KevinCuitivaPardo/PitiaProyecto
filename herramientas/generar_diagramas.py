@@ -61,7 +61,7 @@ flecha(ax, 12.45, 8.55, 12.45, 7.85)
 
 caja(ax, 5.4, 0.3, 14.4, 2.5, "Salida", "bloques con fecha, hora, materia y motivo · advertencias\nresumen semanal · indicadores · recomendaciones\nestadísticas de progreso · respuestas del asistente", fc=SAGE_L, ec="#7FA35E", fs=10)
 flecha(ax, 12.6, 4.3, 12.6, 2.8)
-caja(ax, 0.2, 0.3, 4.6, 2.5, "Verificación", "73 pruebas automáticas\nevaluación con casos y\nsimulación (300 escenarios)", fc=ROSE, ec="#C98A82", fs=9.5)
+caja(ax, 0.2, 0.3, 4.6, 2.5, "Verificación", "74 pruebas automáticas\nevaluación con casos y\nsimulación (300 escenarios)", fc=ROSE, ec="#C98A82", fs=9.5)
 flecha(ax, 4.8, 1.55, 5.4, 1.55, color="#C98A82")
 
 fig.savefig(os.path.join(aqui, "arquitectura.png"), bbox_inches="tight", facecolor="white")

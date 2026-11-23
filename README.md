@@ -34,7 +34,7 @@ Es un sistema **simbólico** (reglas y planificación heurística EDF) con **apr
 ## Comandos
 
 ```bash
-python -m unittest discover -s pruebas -v      # 73 pruebas automáticas
+python -m unittest discover -s pruebas -v      # 74 pruebas automáticas
 python pruebas/evaluacion.py --figuras         # evaluación del Hito 3 (resultados/ y figuras)
 python herramientas/demo.py                    # plan en consola
 python documento/generar_tablas.py             # tablas y cifras del documento
