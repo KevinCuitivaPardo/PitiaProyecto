@@ -41,7 +41,7 @@ lo que se hizo en esta entrega.
 | Documento: sección 8 *Conclusiones* | Hecho: 2 aciertos, 2 errores, 3 conclusiones, trabajo futuro |
 | Prototipo funcional MVP | Hecho (ver abajo) |
 | Fuentes finales del diseño y del código | Hecho: repositorio, anexo del documento y `README.md` |
-| Video (máx. 10 min) con resultados y demo | **Pendiente (lo graba el equipo)**: guion en `docs/GUION_VIDEO_HITO3.md` |
+| Video (máx. 10 min) con resultados y demo | **Pendiente**: lo graba el autor |
 | Compilar el PDF | **Pendiente**: no había LaTeX en esta máquina; compilar en Overleaf con XeLaTeX + biber (ver `documento/README.md`) |
 
 ### Qué se agregó al MVP

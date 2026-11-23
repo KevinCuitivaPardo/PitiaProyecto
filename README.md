@@ -53,7 +53,7 @@ python herramientas/generar_diagramas.py       # diagramas (requiere matplotlib)
 | `pruebas/` | Pruebas unitarias y `evaluacion.py` (casos, simulación y calibración) |
 | `resultados/` | Salida de la evaluación (`evaluacion.json`, `evaluacion.md`) |
 | `documento/` | Documento del proyecto en la plantilla LaTeX (ver [documento/README.md](documento/README.md)) |
-| `docs/` | Revisión por hitos, tipo de IA y guion del video |
+| `docs/` | Revisión por hitos y tipo de IA |
 | `herramientas/` | Scripts de apoyo: demo en consola, capturas y diagramas |
 | `archivo_hito2/` | Prototipo del Hito 2 (con motor en JavaScript), conservado como historial |
 
