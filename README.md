@@ -86,12 +86,3 @@ API: `GET /api/ejemplo`, `GET /api/asistente_estado`, `POST /api/importar`, `POS
 ## Formato del horario
 
 Los campos obligatorios son `semestre_inicio` y `bloques`. El formato completo está en el anexo del documento, y la pantalla de inicio permite descargar una plantilla.
-
-## Limitaciones
-
-- Evaluado con un horario real y simulaciones; **no hay evaluación con usuarios**.
-- Las horas base por tipo de trabajo y los márgenes por dificultad son supuestos propios; la calibración los corrige con los datos del usuario.
-- El horario no se lee desde una imagen o PDF: entra como JSON o se arma en la interfaz.
-- Los métodos de estudio vienen de una base propia con referencias a la literatura; el modelo local, si se usa, es pequeño y puede equivocarse, y sus respuestas van marcadas.
-- El estado se guarda en el navegador (localStorage) y se puede descargar desde la barra lateral.
-- Los créditos de algunas materias del horario de ejemplo son supuestos.
